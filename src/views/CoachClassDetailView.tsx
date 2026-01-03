@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ClassAttendeesModal } from '../components/ClassAttendeesModal';
 import { AttendanceView } from './AttendanceView';
 import { ExerciseLibraryView } from './ExerciseLibraryView';
+import { WODReportView } from './WODReportView';
 
 interface CoachClassDetailViewProps {
     classData: any;
@@ -24,18 +25,33 @@ export const CoachClassDetailView: React.FC<CoachClassDetailViewProps> = ({ clas
     const [showAttendees, setShowAttendees] = useState(false);
     const [showAttendanceList, setShowAttendanceList] = useState(false);
     const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
+    const [showWODReport, setShowWODReport] = useState(false);
     const [wodExercises, setWodExercises] = useState<any[]>([]);
 
     const handleAddExercise = (exercise: any) => {
         if (!wodExercises.find(e => e.id === exercise.id)) {
-            setWodExercises([...wodExercises, exercise]);
+            setWodExercises([...wodExercises, { ...exercise, series: '', reps: '' }]);
         }
         setShowExerciseLibrary(false);
+    };
+
+    const updatePrescription = (id: number, field: 'series' | 'reps', value: string) => {
+        setWodExercises(wodExercises.map(ex =>
+            ex.id === id ? { ...ex, [field]: value } : ex
+        ));
     };
 
     const handleRemoveExercise = (id: number) => {
         setWodExercises(wodExercises.filter(e => e.id !== id));
     };
+
+    if (showWODReport) {
+        return <WODReportView
+            classData={classData}
+            wodExercises={wodExercises}
+            onBack={() => setShowWODReport(false)}
+        />;
+    }
 
     if (showAttendanceList) {
         return <AttendanceView classData={classData} onBack={() => setShowAttendanceList(false)} />;
@@ -320,7 +336,28 @@ export const CoachClassDetailView: React.FC<CoachClassDetailViewProps> = ({ clas
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <p style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{ex.name}</p>
-                                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0 }}>{ex.category}</p>
+                                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                <input
+                                                    type="text"
+                                                    placeholder="S"
+                                                    value={ex.series}
+                                                    onChange={(e) => updatePrescription(ex.id, 'series', e.target.value)}
+                                                    style={{ width: '1.75rem', fontSize: '0.75rem', padding: '0.125rem', textAlign: 'center', border: '1px solid var(--color-border)', borderRadius: '0.25rem', backgroundColor: 'var(--color-surface)' }}
+                                                />
+                                                <span style={{ fontSize: '0.625rem', color: 'var(--color-text-muted)' }}>ser.</span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                <input
+                                                    type="text"
+                                                    placeholder="R"
+                                                    value={ex.reps}
+                                                    onChange={(e) => updatePrescription(ex.id, 'reps', e.target.value)}
+                                                    style={{ width: '2.5rem', fontSize: '0.75rem', padding: '0.125rem', textAlign: 'center', border: '1px solid var(--color-border)', borderRadius: '0.25rem', backgroundColor: 'var(--color-surface)' }}
+                                                />
+                                                <span style={{ fontSize: '0.625rem', color: 'var(--color-text-muted)' }}>reps</span>
+                                            </div>
+                                        </div>
                                     </div>
                                     <button
                                         onClick={() => handleRemoveExercise(ex.id)}
@@ -331,6 +368,31 @@ export const CoachClassDetailView: React.FC<CoachClassDetailViewProps> = ({ clas
                                 </div>
                             ))}
                         </div>
+                    )}
+
+                    {wodExercises.length > 0 && (
+                        <button
+                            onClick={() => setShowWODReport(true)}
+                            style={{
+                                width: '100%',
+                                backgroundColor: 'var(--color-text-main)',
+                                color: 'var(--color-bg)',
+                                border: 'none',
+                                borderRadius: '0.75rem',
+                                padding: '0.75rem',
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                cursor: 'pointer',
+                                marginBottom: '1rem',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                            }}
+                        >
+                            <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>description</span>
+                            <span>Generar Informe WOD</span>
+                        </button>
                     )}
 
                     <button
