@@ -5,14 +5,20 @@ interface ClassDetailViewProps {
     classData: any; // Replace with proper type later
     onBack: () => void;
     onBook: () => void;
+    onCancel: () => void;
 }
 
-export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onBack, onBook }) => {
+export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onBack, onBook, onCancel }) => {
     // Default values if data is missing
     const enrolled = classData.enrolled ?? 8;
     const capacity = classData.capacity ?? 10;
     const isFull = enrolled >= capacity;
     const spotsLeft = capacity - enrolled;
+
+    // Check if user is already booked (Status check)
+    const isBooked = classData.status === 'upcoming';
+    const isCancelled = classData.status === 'cancelled';
+    const isAttended = classData.status === 'attended';
 
     const [showAttendees, setShowAttendees] = useState(false);
 
@@ -33,6 +39,7 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
             color: 'var(--color-text-main)',
             boxShadow: '0 0 20px rgba(0,0,0,0.5)' // Shadow to separate from background on large screens
         }}>
+            {/* ... Header & Main Content ... */}
             {/* Header */}
             <header style={{
                 position: 'fixed',
@@ -174,9 +181,9 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                         transform: 'scale(1)',
                         // Hover effect handled in CSS usually, but inline for simple react
                     }}
-                    onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-                    onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                    onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.transform = 'scale(0.98)'}
+                    onMouseUp={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.transform = 'scale(1)'}
+                    onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.transform = 'scale(1)'}
                 >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.5rem' }}>
                         <div>
@@ -229,7 +236,7 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                     </div>
                 </div>
 
-                {/* Booking Section - Reordered */}
+                {/* Booking/Cancel Section */}
                 <div style={{
                     backgroundColor: 'var(--color-surface)',
                     padding: '1rem',
@@ -240,31 +247,61 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                     gap: '1rem'
                 }}>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{isFull ? 'Pre-reserva' : 'Total a pagar'}</span>
-                        <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-main)' }}>{isFull ? '0 Créditos' : '1 Crédito'}</span>
-                    </div>
-                    <button
-                        onClick={onBook}
-                        style={{
-                            flex: 1,
-                            backgroundColor: isFull ? '#f97316' : 'var(--color-primary)', // Orange for Waitlist, Red for Book
-                            color: 'white',
-                            fontWeight: 700,
-                            padding: '0.875rem 1.5rem',
-                            borderRadius: '0.75rem',
-                            border: 'none',
-                            boxShadow: isFull ? '0 4px 12px rgba(249, 115, 22, 0.3)' : '0 4px 12px rgba(211, 0, 31, 0.3)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                            cursor: 'pointer'
-                        }}>
-                        <span className="material-icons-round">
-                            {isFull ? 'hourglass_empty' : 'check_circle'}
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{isBooked ? 'Estado' : 'Total a pagar'}</span>
+                        <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-main)' }}>
+                            {isBooked ? 'Reservado' : (isFull ? '0 Créditos' : '1 Crédito')}
                         </span>
-                        {isFull ? 'Unirse a Lista de Espera' : 'Reservar Plaza'}
-                    </button>
+                    </div>
+
+                    {isBooked ? (
+                        <button
+                            onClick={onCancel}
+                            disabled={isCancelled || isAttended}
+                            style={{
+                                flex: 1,
+                                backgroundColor: isCancelled ? '#ef4444' : 'transparent', // Red if cancelled, transparent if active but cancellable? No, should be destructive button
+                                border: '2px solid #ef4444',
+                                color: isCancelled ? 'white' : '#ef4444',
+                                fontWeight: 700,
+                                padding: '0.75rem 1.5rem',
+                                borderRadius: '0.75rem',
+                                boxShadow: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                cursor: isCancelled ? 'not-allowed' : 'pointer',
+                                opacity: (isCancelled || isAttended) ? 0.6 : 1
+                            }}>
+                            <span className="material-icons-round">
+                                {isCancelled ? 'cancel' : 'close'}
+                            </span>
+                            {isCancelled ? 'Cancelado' : (isAttended ? 'Asistido' : 'Cancelar Reserva')}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={onBook}
+                            style={{
+                                flex: 1,
+                                backgroundColor: isFull ? '#f97316' : 'var(--color-primary)',
+                                color: 'white',
+                                fontWeight: 700,
+                                padding: '0.875rem 1.5rem',
+                                borderRadius: '0.75rem',
+                                border: 'none',
+                                boxShadow: isFull ? '0 4px 12px rgba(249, 115, 22, 0.3)' : '0 4px 12px rgba(211, 0, 31, 0.3)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                cursor: 'pointer'
+                            }}>
+                            <span className="material-icons-round">
+                                {isFull ? 'hourglass_empty' : 'check_circle'}
+                            </span>
+                            {isFull ? 'Unirse a Lista de Espera' : 'Reservar Plaza'}
+                        </button>
+                    )}
                 </div>
 
                 {/* About */}

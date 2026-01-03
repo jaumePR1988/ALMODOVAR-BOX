@@ -45,23 +45,107 @@ export const ClientDashboardView: React.FC = () => {
         }
     ]);
 
+    // State for credits (lifted from InicioSection)
+    const [usedSessions, setUsedSessions] = useState(4);
+    const monthlyLimit = userData?.membership === 'box' ? 12 : 16;
+    const availableMonthly = monthlyLimit - usedSessions;
+
+    const [cancelConfirmation, setCancelConfirmation] = useState<{ show: boolean, isLate: boolean, diffHours: number } | null>(null);
+
+
+    // Helper to sort classes chronologically
+    const sortClassesByDate = (classes: any[]) => {
+        // Mock parsing for sort - mapping day names/numbers to comparable values
+        // Assuming format "Day Name Number" like "SAB 3" or simple time if implicitly today
+        // For simplicity in this mock, we can prioritize by status (Attended < Upcoming) then by time?
+        // Or robustly parse the DAY string. 
+        // Let's assume the mock dates are strictly "VIE 2", "SAB 3" and time "HH:mm".
+
+        const dayValue = (d: string) => {
+            if (d.includes('VIE')) return 2;
+            if (d.includes('SAB')) return 3;
+            return 99; // Future
+        };
+
+        return [...classes].sort((a, b) => {
+            const dayA = dayValue(a.date);
+            const dayB = dayValue(b.date);
+            if (dayA !== dayB) return dayA - dayB;
+
+            // Same day, sort by time
+            const timeA = parseInt(a.time.replace(':', ''));
+            const timeB = parseInt(b.time.replace(':', '')); // 18:00 -> 1800
+            return timeA - timeB;
+        });
+    };
+
     const handleBookClass = () => {
         if (!selectedClass) return;
         const isFull = (selectedClass.enrolled ?? 8) >= (selectedClass.capacity ?? 10);
         setBookingSuccess({ show: true, type: isFull ? 'waitlist' : 'booking' });
 
-        // Sync with Inicio (Mock)
         if (!isFull) {
-            setUserClasses(prev => [
-                {
+            setUserClasses(prev => {
+                const newClass = {
                     ...selectedClass,
                     status: 'upcoming',
-                    enrolled: (selectedClass.enrolled || 0) + 1 // Optimistic update
-                },
-                ...prev
-            ]);
+                    enrolled: (selectedClass.enrolled || 0) + 1
+                };
+
+                // Add new, sort by date/time ascending, take last 3 (dropping oldest/past)
+                const combined = [...prev, newClass];
+                const sorted = sortClassesByDate(combined);
+
+                // User wants "Max 3". "Replace oldest". 
+                // If sorted is [Oldest, Mid, Newest, Future], slice(-3) gives [Mid, Newest, Future].
+                return sorted.slice(-3);
+            });
+            // Deduct credit on booking
+            setUsedSessions(prev => prev + 1);
         }
     };
+
+    const handleCancelClass = () => {
+        if (!selectedClass) return;
+
+        // MOCK TIME: Saturday 3rd, 09:00 AM
+        const mockNow = new Date(2026, 0, 3, 9, 0);
+
+        const timeParts = selectedClass.time.split(' ');
+        const timeStr = timeParts.length > 1 ? timeParts[timeParts.length - 1] : timeParts[0];
+        const [hours, minutes] = timeStr.trim().split(':').map(Number);
+
+        // Robust mock parsing
+        let classDate = new Date(2026, 0, 3, hours || 12, minutes || 0);
+
+        const diffMs = classDate.getTime() - mockNow.getTime();
+        const diffHours = diffMs / (1000 * 60 * 60);
+        const isLateCancellation = diffHours < 1;
+
+        setCancelConfirmation({ show: true, isLate: isLateCancellation, diffHours });
+    };
+
+    const confirmCancellation = () => {
+        if (!selectedClass || !cancelConfirmation) return;
+
+        setUserClasses(prev => prev.map(c =>
+            c.title === selectedClass.title && c.time === selectedClass.time
+                ? { ...c, status: 'cancelled' }
+                : c
+        ));
+
+        if (!cancelConfirmation.isLate) {
+            setUsedSessions(prev => Math.max(0, prev - 1)); // Refund credit
+        }
+
+        setCancelConfirmation(null);
+        setSelectedClass(null);
+    };
+
+    // Weekly Calculation Logic (Lifted)
+    const weeklyLimit = userData?.membership === 'box' ? 2 : 3;
+    const attendedThisWeek = 1;
+    const remainingWeekly = weeklyLimit - attendedThisWeek;
 
     const renderContent = () => {
         if (selectedClass) {
@@ -71,6 +155,7 @@ export const ClientDashboardView: React.FC = () => {
                         classData={selectedClass}
                         onBack={() => setSelectedClass(null)}
                         onBook={handleBookClass}
+                        onCancel={handleCancelClass}
                     />
                     {bookingSuccess.show && (
                         <BookingSuccessModal
@@ -97,11 +182,17 @@ export const ClientDashboardView: React.FC = () => {
                     lastClassRated={lastClassRated}
                     setLastClassRated={setLastClassRated}
                     userClasses={userClasses}
+                    availableMonthly={availableMonthly}
+                    remainingWeekly={remainingWeekly}
                 />;
             case 'retos':
                 return <RetosView />;
             case 'reservas':
-                return <ReservasSection membership={userData?.membership || 'fit'} onSelectClass={setSelectedClass} />;
+                return <ReservasSection
+                    membership={userData?.membership || 'fit'}
+                    onSelectClass={setSelectedClass}
+                    userClasses={userClasses}
+                />;
             case 'noticias':
                 return <NewsView />;
             case 'perfil':
@@ -126,6 +217,8 @@ export const ClientDashboardView: React.FC = () => {
                         lastClassRated={lastClassRated}
                         setLastClassRated={setLastClassRated}
                         userClasses={userClasses}
+                        availableMonthly={availableMonthly}
+                        remainingWeekly={remainingWeekly}
                     />
                 );
         }
@@ -145,7 +238,65 @@ export const ClientDashboardView: React.FC = () => {
             hideHeader={activeTab === 'retos'}
         >
             {showConsentModal && <ConsentModal onComplete={() => setOverrideModal(true)} />}
-            <div className={`scroll-container hide-scrollbar ${showConsentModal ? 'blur-sm pointer-events-none' : ''}`}>
+
+            {/* Custom Cancellation Modal */}
+            {cancelConfirmation && cancelConfirmation.show && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 3000,
+                    backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem'
+                }}>
+                    <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        borderRadius: '1rem', padding: '1.5rem',
+                        width: '100%', maxWidth: '320px',
+                        border: '1px solid var(--color-border)',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    }}>
+                        <div style={{
+                            width: '3rem', height: '3rem', borderRadius: '50%',
+                            backgroundColor: cancelConfirmation.isLate ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                            color: cancelConfirmation.isLate ? '#ef4444' : '#22c55e',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto'
+                        }}>
+                            <span className="material-icons-round" style={{ fontSize: '1.5rem' }}>
+                                {cancelConfirmation.isLate ? 'warning' : 'check_circle'}
+                            </span>
+                        </div>
+                        <h3 style={{ textAlign: 'center', fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: '0.5rem' }}>
+                            {cancelConfirmation.isLate ? 'Cancelación Tardía' : 'Confirmar Cancelación'}
+                        </h3>
+                        <p style={{ textAlign: 'center', fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+                            {cancelConfirmation.isLate
+                                ? `Faltan ${cancelConfirmation.diffHours.toFixed(1)}h para la clase (<1h). Si cancelas ahora, perderás tu crédito.`
+                                : `Faltan ${cancelConfirmation.diffHours.toFixed(1)}h para la clase. Se te devolverá el crédito.`}
+                        </p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                            <button
+                                onClick={() => setCancelConfirmation(null)}
+                                style={{
+                                    padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)',
+                                    backgroundColor: 'transparent', color: 'var(--color-text-main)', fontWeight: 600, cursor: 'pointer'
+                                }}
+                            >
+                                Volver
+                            </button>
+                            <button
+                                onClick={confirmCancellation}
+                                style={{
+                                    padding: '0.75rem', borderRadius: '0.5rem', border: 'none',
+                                    backgroundColor: cancelConfirmation.isLate ? '#ef4444' : 'var(--color-primary)',
+                                    color: 'white', fontWeight: 600, cursor: 'pointer'
+                                }}
+                            >
+                                {cancelConfirmation.isLate ? 'Asumir penalización' : 'Confirmar'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className={`scroll-container ${showConsentModal ? 'blur-sm pointer-events-none' : ''}`}>
                 {renderContent()}
             </div>
         </MainLayout>
@@ -166,20 +317,10 @@ const InicioSection: React.FC<{
     setStartRatingFlow: (v: boolean) => void,
     lastClassRated: boolean,
     setLastClassRated: (v: boolean) => void,
-    userClasses: any[]
-}> = ({ membership, user, userData, onSelectClass, startRatingFlow, setStartRatingFlow, lastClassRated, setLastClassRated, userClasses }) => {
-
-    // Monthly Calculation Logic (Mocked)
-    const monthlyLimit = membership === 'box' ? 12 : 16;
-    const usedSessions = 4;
-    const coachAssists = 1;
-    const lateCancellations = 0; // Cancelled < 1 hour before
-    const availableMonthly = monthlyLimit - (usedSessions + coachAssists + lateCancellations);
-
-    // Weekly Calculation Logic (Mocked)
-    const weeklyLimit = membership === 'box' ? 2 : 3;
-    const attendedThisWeek = 1;
-    const remainingWeekly = weeklyLimit - attendedThisWeek;
+    userClasses: any[],
+    availableMonthly: number,
+    remainingWeekly: number
+}> = ({ membership, user, userData, onSelectClass, startRatingFlow, setStartRatingFlow, lastClassRated, setLastClassRated, userClasses, availableMonthly, remainingWeekly }) => {
 
     const classToRate = userClasses.find(c => c.status === 'attended' && !lastClassRated);
 
@@ -333,7 +474,11 @@ const InicioSection: React.FC<{
     );
 };
 
-const ReservasSection: React.FC<{ membership?: 'box' | 'fit', onSelectClass: (cls: any) => void }> = ({ membership, onSelectClass }) => {
+const ReservasSection: React.FC<{
+    membership?: 'box' | 'fit',
+    onSelectClass: (cls: any) => void,
+    userClasses: any[]
+}> = ({ membership, onSelectClass, userClasses }) => {
     const [selectedGroup, setSelectedGroup] = useState<'box' | 'fit'>(membership || 'box');
 
     // MOCK Schedule Data (4 classes as requested)
@@ -368,8 +513,8 @@ const ReservasSection: React.FC<{ membership?: 'box' | 'fit', onSelectClass: (cl
     const schedule = getSchedule(selectedGroup);
 
     // Mock current time
-    const currentHour = 10; // 10:30 AM (Morning class passed)
-    const currentMinute = 30;
+    const currentHour = 13; // 13:00 PM (Disables 09:30 and 12:00)
+    const currentMinute = 0;
 
     const isPassed = (timeStr: string) => {
         const [h, m] = timeStr.split(':').map(Number);
@@ -445,18 +590,33 @@ const ReservasSection: React.FC<{ membership?: 'box' | 'fit', onSelectClass: (cl
                         const full = session.available === 0;
                         const canReserve = !passed && !full;
 
+                        const bookedClass = userClasses.find(c =>
+                            c.title === session.title &&
+                            c.date === session.date &&
+                            c.time === session.time &&
+                            c.status !== 'cancelled'
+                        );
+                        const isBooked = !!bookedClass;
+
                         return (
                             <div
                                 key={idx}
                                 className="session-item"
-                                onClick={() => onSelectClass(session)}
+                                onClick={() => {
+                                    if (isBooked) {
+                                        onSelectClass(bookedClass);
+                                    } else if (!passed) {
+                                        onSelectClass(session);
+                                    }
+                                }}
                                 style={{
                                     borderLeftColor: selectedGroup === 'box' ? 'var(--color-text-main)' : 'var(--color-primary)',
                                     opacity: passed ? 0.6 : 1,
-                                    cursor: 'pointer',
+                                    cursor: passed ? 'default' : 'pointer',
                                     transition: 'transform 0.1s',
                                     transform: 'scale(1)',
-                                    ':active': { transform: 'scale(0.98)' }
+                                    backgroundColor: isBooked ? 'var(--color-surface-highlight)' : 'var(--color-surface)',
+                                    // ':active': { transform: 'scale(0.98)' } // Only if clickable
                                 } as any}
                             >
                                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -467,17 +627,20 @@ const ReservasSection: React.FC<{ membership?: 'box' | 'fit', onSelectClass: (cl
                                     <div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                             <h4 style={{ fontWeight: 700, fontSize: '0.95rem', margin: 0 }}>{session.title}</h4>
-                                            {full && <span className="material-icons-round" style={{ fontSize: '1rem', color: '#f97316' }}>hourglass_empty</span>}
+                                            {isBooked && (
+                                                <span className="material-icons-round" style={{ fontSize: '1rem', color: '#4ade80' }}>check_circle</span>
+                                            )}
+                                            {!isBooked && full && <span className="material-icons-round" style={{ fontSize: '1rem', color: '#f97316' }}>hourglass_empty</span>}
                                         </div>
                                         <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0 }}>{session.duration} min • {session.coach}</p>
                                         {!passed && (
                                             <span className="session-badge" style={{
-                                                backgroundColor: full ? 'rgba(249, 115, 22, 0.1)' : 'rgba(34, 197, 94, 0.1)',
-                                                color: full ? '#f97316' : '#4ade80',
+                                                backgroundColor: isBooked ? 'rgba(74, 222, 128, 0.1)' : (full ? 'rgba(249, 115, 22, 0.1)' : 'rgba(34, 197, 94, 0.1)'),
+                                                color: isBooked ? '#4ade80' : (full ? '#f97316' : '#4ade80'),
                                                 marginTop: '0.25rem',
                                                 display: 'inline-block'
                                             }}>
-                                                {full ? 'Lista de Espera' : `${session.available} plazas`}
+                                                {isBooked ? 'RESERVADO' : (full ? 'Lista de Espera' : `${session.available} plazas`)}
                                             </span>
                                         )}
                                     </div>
@@ -485,23 +648,34 @@ const ReservasSection: React.FC<{ membership?: 'box' | 'fit', onSelectClass: (cl
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        onSelectClass(session);
+                                        if (!isBooked && !passed) {
+                                            onSelectClass(session);
+                                        }
                                     }}
-                                    disabled={passed}
+                                    disabled={passed || isBooked}
                                     style={{
-                                        backgroundColor: canReserve ? (selectedGroup === 'box' ? 'var(--color-surface)' : 'var(--color-primary)') : 'transparent',
-                                        color: canReserve ? (selectedGroup === 'box' ? 'var(--color-text-main)' : 'white') : (full ? '#f97316' : 'var(--color-text-muted)'),
-                                        border: canReserve ? (selectedGroup === 'box' ? '1px solid var(--color-border)' : 'none') : (full ? '1px solid #f97316' : 'none'),
+                                        backgroundColor: isBooked
+                                            ? 'transparent'
+                                            : (canReserve ? (selectedGroup === 'box' ? 'var(--color-surface)' : 'var(--color-primary)') : 'transparent'),
+
+                                        color: isBooked
+                                            ? '#4ade80'
+                                            : (canReserve ? (selectedGroup === 'box' ? 'var(--color-text-main)' : 'white') : (full ? '#f97316' : 'var(--color-text-muted)')),
+
+                                        border: isBooked
+                                            ? '1px solid #4ade80'
+                                            : (canReserve ? (selectedGroup === 'box' ? '1px solid var(--color-border)' : 'none') : (full ? '1px solid #f97316' : 'none')),
+
                                         padding: '0.5rem 0.75rem',
                                         borderRadius: '8px',
                                         fontSize: '0.75rem',
                                         fontWeight: 700,
-                                        cursor: passed ? 'not-allowed' : 'pointer',
+                                        cursor: (passed || isBooked) ? 'default' : 'pointer',
                                         minWidth: '85px',
-                                        boxShadow: canReserve && selectedGroup === 'fit' ? '0 4px 12px rgba(211,0,31,0.3)' : 'none'
+                                        boxShadow: (!isBooked && canReserve && selectedGroup === 'fit') ? '0 4px 12px rgba(211,0,31,0.3)' : 'none'
                                     }}
                                 >
-                                    {passed ? 'Finalizado' : (full ? 'Completo' : 'Reservar')}
+                                    {passed ? 'Finalizado' : (isBooked ? 'Reservado' : (full ? 'Completo' : 'Reservar'))}
                                 </button>
                             </div>
                         );

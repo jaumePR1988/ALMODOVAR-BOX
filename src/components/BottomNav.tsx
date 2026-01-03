@@ -19,6 +19,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
             <div
                 className={`bottom-nav-item ${activeTab === 'retos' ? 'active' : ''}`}
                 onClick={() => onTabChange('retos')}
+                style={{ marginRight: '1rem' }}
             >
                 <span className="material-icons-round">emoji_events</span>
                 <span>Retos</span>
@@ -37,6 +38,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
             <div
                 className={`bottom-nav-item ${activeTab === 'noticias' ? 'active' : ''}`}
                 onClick={() => onTabChange('noticias')}
+                style={{ marginLeft: '1rem' }}
             >
                 <span className="material-icons-round">newspaper</span>
                 <span>Noticias</span>

@@ -104,7 +104,8 @@ body {
 
 .scroll-container {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: scroll;
+  /* Force scrollbar always visible to prevent layout shift */
   overflow-x: hidden;
   padding-bottom: 8rem;
   /* Space for BottomNav */
