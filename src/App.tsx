@@ -14,7 +14,7 @@ function App() {
   const [splashLoading, setSplashLoading] = useState(true);
   const { user, isApproved, loading: authLoading } = useAuth();
 
-  if (splashLoading) {
+  if (splashLoading || authLoading) {
     return <SplashScreen onComplete={() => setSplashLoading(false)} loading={authLoading} />;
   }
 

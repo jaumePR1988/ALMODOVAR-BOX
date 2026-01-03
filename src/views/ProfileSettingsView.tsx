@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface ProfileSettingsViewProps {
     onBack: () => void;
@@ -8,6 +9,16 @@ interface ProfileSettingsViewProps {
 
 export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({ onBack, onNavigate }) => {
     const { userData, user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/login');
+        } catch (error) {
+            console.error("Error al cerrar sesión:", error);
+        }
+    };
 
     return (
         <div style={{ paddingBottom: '6rem' }}>
@@ -167,7 +178,7 @@ export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({ onBack
                 {/* Logout Section */}
                 <section style={{ paddingTop: '0.5rem' }}>
                     <button
-                        onClick={logout}
+                        onClick={handleLogout}
                         style={{
                             width: '100%',
                             padding: '1rem',

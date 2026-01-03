@@ -11,6 +11,7 @@ interface AuthContextType {
     role: UserRole;
     isApproved: boolean;
     loading: boolean;
+    logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
     role: null,
     isApproved: false,
     loading: true,
+    logout: async () => { },
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -32,9 +34,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let unsubscribeDoc: (() => void) | undefined;
 
         const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-            setUser(firebaseUser);
-
             if (firebaseUser) {
+                // Important: Set loading to true immediately to prevent premature routing
+                // while we fetch the user's data from Firestore.
+                setLoading(true);
+                setUser(firebaseUser);
+
                 // Escuchar cambios en el documento del usuario en tiempo real
                 unsubscribeDoc = onSnapshot(doc(db, 'users', firebaseUser.uid), (userDoc) => {
                     const email = firebaseUser.email || '';
@@ -58,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             setIsApproved(data.approved === true);
                         }
                     } else {
-                        // Usuario recién creado o sin documento (Bypass también aquí por si acaso)
+                        // Usuario recién creado o sin documento
                         if (email === 'admin@almodovarbox.com') {
                             setRole('admin');
                             setIsApproved(true);
@@ -69,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             setRole('cliente');
                             setIsApproved(true);
                         } else {
+                            // Default for new users
                             setRole('cliente');
                             setIsApproved(false);
                         }
@@ -81,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setLoading(false);
                 });
             } else {
+                setUser(null);
                 setRole(null);
                 setIsApproved(false);
                 setUserData(null);
@@ -95,8 +102,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
     }, []);
 
+    const logout = async () => {
+        await auth.signOut();
+        setUser(null);
+        setUserData(null);
+        setRole(null);
+        setIsApproved(false);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, userData, role, isApproved, loading }}>
+        <AuthContext.Provider value={{ user, userData, role, isApproved, loading, logout }}>
             {children}
         </AuthContext.Provider>
     );

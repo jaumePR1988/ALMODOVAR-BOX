@@ -60,7 +60,7 @@ export const LoginView: React.FC = () => {
                     zIndex: 50,
                     background: 'none',
                     border: 'none',
-                    fontSize: '1.75rem',
+                    fontSize: '1.25rem',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -84,8 +84,8 @@ export const LoginView: React.FC = () => {
                 marginBottom: '2rem'
             }}>
                 <div style={{
-                    width: '6rem',
-                    height: '6rem',
+                    width: '10rem',
+                    height: '10rem',
                     marginBottom: '1rem',
                     display: 'flex',
                     alignItems: 'center',

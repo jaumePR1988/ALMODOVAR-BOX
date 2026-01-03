@@ -469,3 +469,68 @@ body {
     transform: scale(1.05);
   }
 }
+
+/* Missing styles for LoginView */
+.ios-input {
+  width: 100%;
+  padding: 1rem;
+  padding-left: 2.5rem;
+  /* Space for icon */
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  color: var(--color-text-main);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.ios-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(211, 0, 31, 0.2);
+}
+
+.badge-tab {
+  display: flex;
+  background-color: var(--color-bg);
+  padding: 0.25rem;
+  border-radius: var(--radius-xl);
+  margin-bottom: 1.5rem;
+}
+
+.badge-tab button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: var(--radius-default);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.badge-tab button.active {
+  background-color: var(--color-surface);
+  color: var(--color-text-main);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+  font-weight: 700;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.6s ease-out forwards;
+}
