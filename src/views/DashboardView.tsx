@@ -56,7 +56,7 @@ const InicioSection: React.FC = () => {
                     <span style={{ fontSize: '0.875rem', color: 'var(--color-primary)', fontWeight: 600 }}>Ver calendario</span>
                 </div>
                 <div className="hero-next-class">
-                    <img src="https://images.unsplash.com/photo-1541534741688-6078c64b5913?auto=format&fit=crop&q=80&w=600" alt="Fit Boxing" />
+                    <img src="https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&q=80&w=600" alt="Fit Boxing" />
                     <div className="hero-overlay"></div>
                     <div className="hero-content">
                         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>

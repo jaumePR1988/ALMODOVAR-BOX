@@ -1,6 +1,7 @@
 import React from 'react';
 import { BottomNav } from './BottomNav';
 import { auth } from '../firebase';
+import { useTheme } from '../context/ThemeContext';
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -10,6 +11,7 @@ interface MainLayoutProps {
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onTabChange, userName }) => {
+    const { theme, toggleTheme } = useTheme();
     return (
         <div className="app-container">
             {/* Native-Like Fixed Header */}
@@ -66,11 +68,20 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onT
                         <span className="blink-pulse" style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', width: '0.6rem', height: '0.6rem', backgroundColor: '#ef4444', border: '2px solid var(--color-surface)', borderRadius: '50%' }}></span>
                     </div>
                     <button
+                        onClick={toggleTheme}
+                        style={{ background: 'none', border: 'none', color: 'var(--color-text-main)', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                        title="Cambiar tema"
+                    >
+                        <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>
+                            {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+                        </span>
+                    </button>
+                    <button
                         onClick={() => auth.signOut()}
-                        style={{ background: 'none', border: 'none', color: '#ef4444', width: '2.5rem', height: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                        style={{ background: 'none', border: 'none', color: '#ef4444', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                         title="Cerrar sesión"
                     >
-                        <span className="material-icons-round" style={{ fontSize: '1.5rem' }}>logout</span>
+                        <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>logout</span>
                     </button>
                 </div>
             </header>
