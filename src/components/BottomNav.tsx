@@ -29,7 +29,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
                 style={{ flexShrink: 0 }}
                 onClick={() => onTabChange('reservas')}
             >
-                <span className="material-icons-round" style={{ fontSize: '1.75rem' }}>add</span>
+                <span className="material-icons-round">add</span>
+                <span>Reservar</span>
             </div>
 
             <div
