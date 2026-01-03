@@ -1,23 +1,38 @@
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+import { SplashScreen } from './components/SplashScreen';
+import { LoginView } from './views/LoginView';
+import { RegisterView } from './views/RegisterView';
+import { TermsView } from './views/TermsView';
+import { PrivacyView } from './views/PrivacyView';
+import { HelpView } from './views/HelpView';
+import './App.css';
+
 function App() {
+  const [loading, setLoading] = useState(true);
+
   return (
-    <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 'var(--spacing-lg)' }}>
-      <h1 style={{ fontSize: '3rem', fontWeight: 800, background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-        ALMODOVARBOX
-      </h1>
-      <p style={{ fontSize: '1.25rem', color: '#94a3b8' }}>
-        Fitness App
-      </p>
-      <button style={{ 
-        backgroundColor: 'var(--color-primary)', 
-        color: 'white', 
-        padding: '0.75rem 1.5rem', 
-        borderRadius: 'var(--radius-md)', 
-        fontWeight: 600,
-        transition: 'all 0.2s ease'
-      }}>
-        Get Started
-      </button>
-    </div>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          {loading ? (
+            <SplashScreen onComplete={() => setLoading(false)} />
+          ) : (
+            <Routes>
+              <Route path="/login" element={<LoginView />} />
+              <Route path="/register" element={<RegisterView />} />
+              <Route path="/terms" element={<TermsView />} />
+              <Route path="/privacy" element={<PrivacyView />} />
+              <Route path="/help" element={<HelpView />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              {/* Futuras rutas: /dashboard, /profile, etc. */}
+            </Routes>
+          )}
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 
