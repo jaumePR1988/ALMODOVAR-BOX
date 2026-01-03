@@ -1,52 +1,102 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export type UserRole = 'cliente' | 'coach' | 'admin' | null;
 
 interface AuthContextType {
     user: User | null;
+    userData: any | null;
     role: UserRole;
+    isApproved: boolean;
     loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+    user: null,
+    userData: null,
+    role: null,
+    isApproved: false,
+    loading: true,
+});
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [userData, setUserData] = useState<any | null>(null);
     const [role, setRole] = useState<UserRole>(null);
+    const [isApproved, setIsApproved] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        let unsubscribeDoc: (() => void) | undefined;
+
+        const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
             setUser(firebaseUser);
 
             if (firebaseUser) {
-                // Fetch role from Firestore
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+                // Escuchar cambios en el documento del usuario en tiempo real
+                unsubscribeDoc = onSnapshot(doc(db, 'users', firebaseUser.uid), (userDoc) => {
+                    const email = firebaseUser.email || '';
+
                     if (userDoc.exists()) {
-                        setRole(userDoc.data().role as UserRole);
+                        const data = userDoc.data();
+                        setUserData(data);
+
+                        // Bypass de desarrollo para visualización rápida
+                        if (email === 'admin@almodovarbox.com') {
+                            setRole('admin');
+                            setIsApproved(true);
+                        } else if (email === 'coach@almodovarbox.com') {
+                            setRole('coach');
+                            setIsApproved(true);
+                        } else if (email === 'usuario@almodovarbox.com') {
+                            setRole('cliente');
+                            setIsApproved(true);
+                        } else {
+                            setRole(data.role as UserRole);
+                            setIsApproved(data.approved === true);
+                        }
                     } else {
-                        setRole('cliente'); // Default role if not found
+                        // Usuario recién creado o sin documento (Bypass también aquí por si acaso)
+                        if (email === 'admin@almodovarbox.com') {
+                            setRole('admin');
+                            setIsApproved(true);
+                        } else if (email === 'coach@almodovarbox.com') {
+                            setRole('coach');
+                            setIsApproved(true);
+                        } else if (email === 'usuario@almodovarbox.com') {
+                            setRole('cliente');
+                            setIsApproved(true);
+                        } else {
+                            setRole('cliente');
+                            setIsApproved(false);
+                        }
                     }
-                } catch (error) {
-                    console.error("Error fetching user role:", error);
+                    setLoading(false);
+                }, (error) => {
+                    console.error("Error fetching user doc:", error);
                     setRole('cliente');
-                }
+                    setIsApproved(false);
+                    setLoading(false);
+                });
             } else {
                 setRole(null);
+                setIsApproved(false);
+                setUserData(null);
+                setLoading(false);
+                if (unsubscribeDoc) unsubscribeDoc();
             }
-
-            setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribeAuth();
+            if (unsubscribeDoc) unsubscribeDoc();
+        };
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, role, loading }}>
+        <AuthContext.Provider value={{ user, userData, role, isApproved, loading }}>
             {children}
         </AuthContext.Provider>
     );

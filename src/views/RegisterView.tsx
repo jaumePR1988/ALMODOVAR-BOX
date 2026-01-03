@@ -1,18 +1,92 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { auth, db } from '../firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export const RegisterView: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
-
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        phone: '',
+        birthDate: '',
+        street: '',
+        number: '',
+        zip: '',
+        city: '',
+        email: '',
+        password: '',
+        confirmPassword: ''
+    });
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Aquí irá la lógica de Firebase más adelante
-        setIsSubmitted(true);
+        setError(null);
+
+        if (formData.password !== formData.confirmPassword) {
+            setError("Las contraseñas no coinciden");
+            return;
+        }
+
+        if (formData.password.length < 6) {
+            setError("La contraseña debe tener al menos 6 caracteres");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            // 1. Crear usuario en Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+            const user = userCredential.user;
+
+            // 2. Crear documento en Firestore
+            await setDoc(doc(db, 'users', user.uid), {
+                uid: user.uid,
+                email: user.email,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                phone: formData.phone,
+                birthDate: formData.birthDate,
+                address: {
+                    street: formData.street,
+                    number: formData.number,
+                    zip: formData.zip,
+                    city: formData.city
+                },
+                role: 'cliente',
+                approved: false, // Por defecto requiere autorización
+                createdAt: serverTimestamp()
+            });
+
+            setIsSubmitted(true);
+        } catch (err: any) {
+            console.error("Error en registro:", err);
+            if (err.code === 'auth/email-already-in-use') {
+                setError("Este correo electrónico ya está registrado.");
+            } else if (err.code === 'auth/invalid-email') {
+                setError("El correo electrónico no es válido.");
+            } else if (err.code === 'auth/weak-password') {
+                setError("La contraseña es muy débil.");
+            } else {
+                setError("Ha ocurrido un error durante el registro. Inténtalo de nuevo.");
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (isSubmitted) {
@@ -93,9 +167,10 @@ export const RegisterView: React.FC = () => {
         }}>
             {/* Theme Toggle */}
             <button
+                type="button"
                 onClick={toggleTheme}
                 style={{
-                    position: 'fixed',
+                    position: 'absolute',
                     top: '1.5rem',
                     right: '1.5rem',
                     zIndex: 50,
@@ -159,54 +234,162 @@ export const RegisterView: React.FC = () => {
             }}>
                 {/* Tabs */}
                 <div className="badge-tab">
-                    <button className="inactive" onClick={() => navigate('/login')}>
+                    <button type="button" className="inactive" onClick={() => navigate('/login')}>
                         Iniciar Sesión
                     </button>
-                    <button className="active">
+                    <button type="button" className="active">
                         Registrarse
                     </button>
                 </div>
+
+                {error && (
+                    <div style={{
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        color: '#ef4444',
+                        padding: '0.75rem',
+                        borderRadius: 'var(--radius-lg)',
+                        marginBottom: '1rem',
+                        fontSize: '0.875rem',
+                        textAlign: 'center',
+                        border: '1px solid rgba(239, 68, 68, 0.2)'
+                    }}>
+                        {error}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     <div className="grid-2">
                         <div style={{ position: 'relative' }}>
                             <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>person</span>
-                            <input className="ios-input" placeholder="Nombre" required type="text" style={{ paddingLeft: '2.25rem' }} />
+                            <input
+                                id="firstName"
+                                className="ios-input"
+                                placeholder="Nombre"
+                                required
+                                type="text"
+                                style={{ paddingLeft: '2.25rem' }}
+                                value={formData.firstName}
+                                onChange={handleInputChange}
+                            />
                         </div>
-                        <input className="ios-input" placeholder="Apellidos" required type="text" style={{ paddingLeft: '1rem' }} />
+                        <input
+                            id="lastName"
+                            className="ios-input"
+                            placeholder="Apellidos"
+                            required
+                            type="text"
+                            style={{ paddingLeft: '1rem' }}
+                            value={formData.lastName}
+                            onChange={handleInputChange}
+                        />
                     </div>
 
                     <div className="grid-2">
                         <div style={{ position: 'relative' }}>
                             <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>phone</span>
-                            <input className="ios-input" placeholder="Teléfono" required type="tel" style={{ paddingLeft: '2.25rem' }} />
+                            <input
+                                id="phone"
+                                className="ios-input"
+                                placeholder="Teléfono"
+                                required
+                                type="tel"
+                                style={{ paddingLeft: '2.25rem' }}
+                                value={formData.phone}
+                                onChange={handleInputChange}
+                            />
                         </div>
-                        <input className="ios-input" type="date" placeholder="F. Nac" style={{ paddingLeft: '1rem' }} />
+                        <div style={{ position: 'relative' }}>
+                            <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>cake</span>
+                            <input
+                                id="birthDate"
+                                className="ios-input"
+                                type="date"
+                                placeholder="Fecha de Nacimiento"
+                                required
+                                style={{ paddingLeft: '2.25rem' }}
+                                value={formData.birthDate}
+                                onChange={handleInputChange}
+                            />
+                        </div>
                     </div>
 
                     <div style={{ marginTop: '0.25rem' }}>
                         <span className="form-section-title">Dirección completa *</span>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                            <input className="ios-input" placeholder="Calle / Avenida" required type="text" style={{ paddingLeft: '1rem' }} />
+                            <input
+                                id="street"
+                                className="ios-input"
+                                placeholder="Calle / Avenida"
+                                required
+                                type="text"
+                                style={{ paddingLeft: '1rem' }}
+                                value={formData.street}
+                                onChange={handleInputChange}
+                            />
                             <div className="grid-3">
-                                <input className="ios-input" placeholder="Nº" required type="text" style={{ paddingLeft: '1rem' }} />
+                                <input
+                                    id="number"
+                                    className="ios-input"
+                                    placeholder="Nº"
+                                    required
+                                    type="text"
+                                    style={{ paddingLeft: '1rem' }}
+                                    value={formData.number}
+                                    onChange={handleInputChange}
+                                />
                                 <div style={{ gridColumn: 'span 2' }}>
-                                    <input className="ios-input" placeholder="Código Postal" required type="text" style={{ paddingLeft: '1rem' }} />
+                                    <input
+                                        id="zip"
+                                        className="ios-input"
+                                        placeholder="Código Postal"
+                                        required
+                                        type="text"
+                                        style={{ paddingLeft: '1rem' }}
+                                        value={formData.zip}
+                                        onChange={handleInputChange}
+                                    />
                                 </div>
                             </div>
-                            <input className="ios-input" placeholder="Ciudad" required type="text" style={{ paddingLeft: '1rem' }} />
+                            <input
+                                id="city"
+                                className="ios-input"
+                                placeholder="Ciudad"
+                                required
+                                type="text"
+                                style={{ paddingLeft: '1rem' }}
+                                value={formData.city}
+                                onChange={handleInputChange}
+                            />
                         </div>
                     </div>
 
                     <div style={{ position: 'relative' }}>
                         <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>email</span>
-                        <input className="ios-input" placeholder="Correo Electrónico" required type="email" style={{ paddingLeft: '2.25rem' }} />
+                        <input
+                            id="email"
+                            className="ios-input"
+                            placeholder="Correo Electrónico"
+                            required
+                            type="email"
+                            style={{ paddingLeft: '2.25rem' }}
+                            value={formData.email}
+                            onChange={handleInputChange}
+                        />
                     </div>
 
                     <div className="grid-2" style={{ gap: '0.75rem' }}>
                         <div style={{ position: 'relative' }}>
                             <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>lock</span>
-                            <input className="ios-input" placeholder="Contraseña" required type={showPassword ? 'text' : 'password'} style={{ paddingLeft: '2.25rem' }} />
+                            <input
+                                id="password"
+                                className="ios-input"
+                                placeholder="Contraseña"
+                                required
+                                type={showPassword ? 'text' : 'password'}
+                                style={{ paddingLeft: '2.25rem' }}
+                                value={formData.password}
+                                onChange={handleInputChange}
+                            />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
@@ -230,19 +413,47 @@ export const RegisterView: React.FC = () => {
                         </div>
                         <div style={{ position: 'relative' }}>
                             <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>lock_reset</span>
-                            <input className="ios-input" placeholder="Confirmar" required type={showPassword ? 'text' : 'password'} style={{ paddingLeft: '2.25rem' }} />
+                            <input
+                                id="confirmPassword"
+                                className="ios-input"
+                                placeholder="Confirmar"
+                                required
+                                type={showPassword ? 'text' : 'password'}
+                                style={{ paddingLeft: '2.25rem' }}
+                                value={formData.confirmPassword}
+                                onChange={handleInputChange}
+                            />
                         </div>
                     </div>
 
                     <label className="checkbox-container">
                         <input type="checkbox" required />
                         <span>
-                            Acepto los <a href="#">términos</a> y la <a href="#">política de privacidad</a>
+                            Acepto los <button type="button" onClick={() => navigate('/terms')} style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', font: 'inherit' }}>términos</button> y la <button type="button" onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', font: 'inherit' }}>política de privacidad</button>
                         </span>
                     </label>
 
-                    <button type="submit" className="btn-primary" style={{ marginTop: '0.5rem', padding: '0.875rem' }}>
-                        CREAR CUENTA
+                    <button
+                        type="submit"
+                        className="btn-primary"
+                        disabled={loading}
+                        style={{
+                            marginTop: '0.5rem',
+                            padding: '0.875rem',
+                            opacity: loading ? 0.7 : 1,
+                            cursor: loading ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem'
+                        }}
+                    >
+                        {loading ? (
+                            <>
+                                <span className="material-icons-outlined animate-spin" style={{ fontSize: '1.25rem' }}>sync</span>
+                                CREANDO CUENTA...
+                            </>
+                        ) : 'CREAR CUENTA'}
                     </button>
                 </form>
             </div>

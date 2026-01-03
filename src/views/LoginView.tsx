@@ -1,11 +1,40 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { auth } from '../firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export const LoginView: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        setLoading(true);
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            // El observador onAuthStateChanged en AuthContext se encargará de actualizar el estado
+            // y App.tsx se encargará de redirigir según el estado del usuario.
+        } catch (err: any) {
+            console.error("Error en login:", err);
+            if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+                setError("Credenciales incorrectas. Por favor, revisa tu correo y contraseña.");
+            } else if (err.code === 'auth/too-many-requests') {
+                setError("Demasiados intentos fallidos. Inténtalo más tarde.");
+            } else {
+                setError("Error al iniciar sesión. Inténtalo de nuevo.");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="login-page" style={{
@@ -23,8 +52,9 @@ export const LoginView: React.FC = () => {
             {/* Theme Toggle Overlay */}
             <button
                 onClick={toggleTheme}
+                type="button"
                 style={{
-                    position: 'fixed',
+                    position: 'absolute',
                     top: '1.5rem',
                     right: '1.5rem',
                     zIndex: 50,
@@ -54,8 +84,8 @@ export const LoginView: React.FC = () => {
                 marginBottom: '2rem'
             }}>
                 <div style={{
-                    width: '7.5rem',
-                    height: '7.5rem',
+                    width: '6rem',
+                    height: '6rem',
                     marginBottom: '1rem',
                     display: 'flex',
                     alignItems: 'center',
@@ -68,7 +98,7 @@ export const LoginView: React.FC = () => {
                         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     />
                 </div>
-                <h1 style={{ fontSize: '1.875rem', fontWeight: 700, color: 'var(--color-text-main)', textAlign: 'center', letterSpacing: '-0.025em' }}>
+                <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-text-main)', textAlign: 'center', letterSpacing: '-0.025em' }}>
                     Almodovar <span style={{ color: 'var(--color-primary)' }}>Group</span>
                 </h1>
                 <p style={{ marginTop: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.875rem', fontWeight: 500 }}>
@@ -83,9 +113,10 @@ export const LoginView: React.FC = () => {
                 backgroundColor: 'var(--color-surface)',
                 borderRadius: 'var(--radius-2xl)',
                 boxShadow: 'var(--shadow-soft)',
-                padding: '2rem',
+                padding: '1.5rem',
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                marginBottom: '2rem'
             }}>
 
                 <div className="badge-tab">
@@ -97,7 +128,22 @@ export const LoginView: React.FC = () => {
                     </button>
                 </div>
 
-                <form style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {error && (
+                    <div style={{
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        color: '#ef4444',
+                        padding: '0.75rem',
+                        borderRadius: 'var(--radius-lg)',
+                        marginBottom: '1rem',
+                        fontSize: '0.875rem',
+                        textAlign: 'center',
+                        border: '1px solid rgba(239, 68, 68, 0.2)'
+                    }}>
+                        {error}
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                         <div style={{ position: 'relative' }}>
                             <span className="material-icons-outlined" style={{
@@ -115,6 +161,9 @@ export const LoginView: React.FC = () => {
                                 type="email"
                                 className="ios-input"
                                 placeholder="ejemplo@correo.com"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                     </div>
@@ -136,7 +185,10 @@ export const LoginView: React.FC = () => {
                                 type={showPassword ? 'text' : 'password'}
                                 className="ios-input"
                                 placeholder="••••••••"
+                                required
                                 style={{ paddingRight: '2.5rem' }}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                             />
                             <button
                                 type="button"
@@ -165,11 +217,28 @@ export const LoginView: React.FC = () => {
                         </a>
                     </div>
 
-                    <button type="submit" className="btn-primary">
-                        ACCESO CLIENTES
+                    <button
+                        className="btn-primary"
+                        type="submit"
+                        disabled={loading}
+                        style={{
+                            opacity: loading ? 0.7 : 1,
+                            cursor: loading ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem'
+                        }}
+                    >
+                        {loading ? (
+                            <>
+                                <span className="material-icons-outlined animate-spin" style={{ fontSize: '1.25rem' }}>sync</span>
+                                ACCEDIENDO...
+                            </>
+                        ) : 'ACCESO CLIENTES'}
                     </button>
 
-                    <button type="button" className="btn-secondary" onClick={() => navigate('/register')}>
+                    <button className="btn-secondary" onClick={() => navigate('/register')} type="button">
                         Crear una cuenta nueva
                     </button>
                 </form>

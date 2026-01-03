@@ -2,24 +2,35 @@ import React, { useEffect, useState } from 'react';
 
 const BACKGROUND_IMAGE = "https://lh3.googleusercontent.com/aida-public/AB6AXuAdq0F6ORP3wcsQtUD-WVIZvVjbFfAITVLWIx6qLMRiUjN4wq0MNDCPAaDgHSLW_fT6t_j3Hqdvrr0bu7zDl7bQ4qPNdp_E2_K5yySDoivzUa2B0rfZmqGK3rUNDiq0nnIzlrcM5YCY0jY6BIArwuOZrSzCnVAgZyVnI-rVFHEWVqsA-zb_jAccmhW2G72rI-rNDdsMl26ldAcH3PRLohgjv9myOFiRhLWXJdTzrM14HmwweaHtCcIf_Qa8XGlgfGVC_cDYhQqI1dE";
 
-export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
+export const SplashScreen: React.FC<{ onComplete: () => void, loading?: boolean }> = ({ onComplete, loading = false }) => {
+    const [timerDone, setTimerDone] = useState(false);
     const [isFadingOut, setIsFadingOut] = useState(false);
 
     useEffect(() => {
         const timer = setTimeout(() => {
+            setTimerDone(true);
+        }, 2200);
+        return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
+        if (timerDone && !loading && !isFadingOut) {
             setIsFadingOut(true);
             setTimeout(onComplete, 800);
-        }, 2200);
-
-        return () => clearTimeout(timer);
-    }, [onComplete]);
+        }
+    }, [timerDone, loading, isFadingOut, onComplete]);
 
     return (
         <div
             className={`splash-wrapper ${isFadingOut ? 'fade-out' : ''}`}
             style={{
                 position: 'fixed',
-                inset: 0,
+                top: 0,
+                bottom: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '100%',
+                maxWidth: '480px',
                 zIndex: 9999,
                 backgroundColor: 'var(--color-bg)',
                 display: 'flex',
@@ -27,7 +38,7 @@ export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete 
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 overflow: 'hidden',
-                transition: 'opacity 0.8s ease-in-out'
+                transition: 'opacity 0.8s ease-in-out, transform 0.6s ease-out'
             }}
         >
             {/* Background Overlay */}
