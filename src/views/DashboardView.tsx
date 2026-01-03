@@ -10,12 +10,12 @@ export const DashboardView: React.FC = () => {
         switch (activeTab) {
             case 'inicio':
                 return <InicioSection />;
-            case 'agenda':
+            case 'reservas':
                 return <ReservasSection />;
+            case 'noticias':
+                return <div className="section-padding text-center" style={{ marginTop: '2rem' }}>Últimas Noticias (Próximamente)</div>;
             case 'perfil':
-                return <div className="section-padding text-center" style={{ marginTop: '2rem' }}>Perfil de Atleta (Próximamente)</div>;
-            case 'cuenta':
-                return <div className="section-padding text-center" style={{ marginTop: '2rem' }}>Ajustes de Cuenta (Próximamente)</div>;
+                return <div className="section-padding text-center" style={{ marginTop: '2rem' }}>Mi Perfil de Atleta (Próximamente)</div>;
             default:
                 return <InicioSection />;
         }

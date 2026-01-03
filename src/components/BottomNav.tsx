@@ -17,31 +17,31 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
             </div>
 
             <div
-                className={`bottom-nav-item ${activeTab === 'agenda' ? 'active' : ''}`}
-                onClick={() => onTabChange('agenda')}
+                className={`bottom-nav-item ${activeTab === 'reservas' ? 'active' : ''}`}
+                onClick={() => onTabChange('reservas')}
             >
                 <span className="material-icons-round">calendar_today</span>
-                <span>Agenda</span>
+                <span>Reservas</span>
             </div>
 
-            <div className="nav-fab" style={{ flexShrink: 0 }} onClick={() => onTabChange('agenda')}>
+            <div className="nav-fab" style={{ flexShrink: 0 }} onClick={() => onTabChange('reservas')}>
                 <span className="material-icons-round" style={{ fontSize: '1.75rem' }}>add</span>
+            </div>
+
+            <div
+                className={`bottom-nav-item ${activeTab === 'noticias' ? 'active' : ''}`}
+                onClick={() => onTabChange('noticias')}
+            >
+                <span className="material-icons-round">newspaper</span>
+                <span>Noticias</span>
             </div>
 
             <div
                 className={`bottom-nav-item ${activeTab === 'perfil' ? 'active' : ''}`}
                 onClick={() => onTabChange('perfil')}
             >
-                <span className="material-icons-round">fitness_center</span>
-                <span>Perfil</span>
-            </div>
-
-            <div
-                className={`bottom-nav-item ${activeTab === 'cuenta' ? 'active' : ''}`}
-                onClick={() => onTabChange('cuenta')}
-            >
                 <span className="material-icons-round">person</span>
-                <span>Cuenta</span>
+                <span>Perfil</span>
             </div>
         </nav>
     );
