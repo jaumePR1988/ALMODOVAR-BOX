@@ -281,30 +281,45 @@ export const CoachClassDetailView: React.FC<CoachClassDetailViewProps> = ({ clas
 
                     <button
                         onClick={() => setShowExerciseLibrary(true)}
+                        className="premium-add-button"
                         style={{
                             width: '100%',
-                            backgroundColor: 'white',
+                            backgroundColor: 'rgba(var(--color-primary-rgb), 0.03)',
                             color: 'var(--color-primary)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: '0.75rem',
-                            padding: '0.75rem',
-                            fontWeight: 700,
+                            border: '2px dashed rgba(var(--color-primary-rgb), 0.3)',
+                            borderRadius: '1.25rem',
+                            padding: '1.25rem',
+                            fontWeight: 800,
                             display: 'flex',
+                            flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '0.5rem',
+                            gap: '0.75rem',
                             cursor: 'pointer',
-                            marginTop: '1rem',
-                            boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+                            marginTop: '1.5rem',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            position: 'relative',
+                            overflow: 'hidden'
                         }}
                     >
                         <div style={{
-                            width: '1.5rem', height: '1.5rem', borderRadius: '50%', backgroundColor: 'var(--color-primary)',
-                            color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            width: '3rem',
+                            height: '3rem',
+                            borderRadius: '50%',
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 8px 16px rgba(var(--color-primary-rgb), 0.3)',
+                            marginBottom: '0.25rem'
                         }}>
-                            <span className="material-icons-round" style={{ fontSize: '1rem' }}>add</span>
+                            <span className="material-icons-round" style={{ fontSize: '1.75rem' }}>add</span>
                         </div>
-                        <span>Añadir Ejercicio</span>
+                        <div style={{ textAlign: 'center' }}>
+                            <span style={{ display: 'block', fontSize: '1rem', letterSpacing: '-0.01em' }}>Personalizar WOD</span>
+                            <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: 500, opacity: 0.7, marginTop: '2px' }}>Añadir movimientos de la biblioteca</span>
+                        </div>
                     </button>
                 </div>
 
