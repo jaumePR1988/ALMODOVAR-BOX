@@ -317,8 +317,6 @@ body {
 }
 
 .nav-fab {
-  position: relative;
-  top: -1.25rem;
   width: 3.25rem;
   height: 3.25rem;
   background-color: var(--color-secondary);
@@ -329,6 +327,15 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 5px 15px rgba(26, 26, 46, 0.4);
+  transform: translateY(-1.25rem);
+  flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.nav-fab.active {
+  background-color: var(--color-primary);
+  box-shadow: 0 8px 25px rgba(211, 0, 31, 0.5);
+  transform: translateY(-1.5rem) scale(1.1);
 }
 
 /* Generic Padding for all sections */

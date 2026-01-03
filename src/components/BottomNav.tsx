@@ -17,14 +17,18 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
             </div>
 
             <div
-                className={`bottom-nav-item ${activeTab === 'reservas' ? 'active' : ''}`}
-                onClick={() => onTabChange('reservas')}
+                className={`bottom-nav-item ${activeTab === 'retos' ? 'active' : ''}`}
+                onClick={() => onTabChange('retos')}
             >
-                <span className="material-icons-round">calendar_today</span>
-                <span>Reservas</span>
+                <span className="material-icons-round">emoji_events</span>
+                <span>Retos</span>
             </div>
 
-            <div className="nav-fab" style={{ flexShrink: 0 }} onClick={() => onTabChange('reservas')}>
+            <div
+                className={`nav-fab ${activeTab === 'reservas' ? 'active' : ''}`}
+                style={{ flexShrink: 0 }}
+                onClick={() => onTabChange('reservas')}
+            >
                 <span className="material-icons-round" style={{ fontSize: '1.75rem' }}>add</span>
             </div>
 
@@ -40,7 +44,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
                 className={`bottom-nav-item ${activeTab === 'perfil' ? 'active' : ''}`}
                 onClick={() => onTabChange('perfil')}
             >
-                <span className="material-icons-round">person</span>
+                <span className="material-icons-round">fitness_center</span>
                 <span>Perfil</span>
             </div>
         </nav>

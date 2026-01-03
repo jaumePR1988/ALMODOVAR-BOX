@@ -10,6 +10,8 @@ export const DashboardView: React.FC = () => {
         switch (activeTab) {
             case 'inicio':
                 return <InicioSection />;
+            case 'retos':
+                return <div className="section-padding text-center" style={{ marginTop: '2rem' }}>Próximos Retos Almodóvar (Próximamente)</div>;
             case 'reservas':
                 return <ReservasSection />;
             case 'noticias':
