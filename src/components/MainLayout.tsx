@@ -52,19 +52,22 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onT
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0, alignItems: 'center' }}>
-                    <div style={{
-                        position: 'relative',
-                        width: '2.25rem',
-                        height: '2.25rem',
-                        backgroundColor: 'var(--color-surface)',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'var(--color-text-main)',
-                        border: '1px solid var(--color-border)',
-                        overflow: 'hidden'
-                    }}>
+                    <div
+                        onClick={() => onTabChange('notificaciones')}
+                        style={{
+                            position: 'relative',
+                            width: '2.25rem',
+                            height: '2.25rem',
+                            backgroundColor: 'var(--color-surface)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: activeTab === 'notificaciones' ? 'var(--color-primary)' : 'var(--color-text-main)',
+                            border: activeTab === 'notificaciones' ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                            overflow: 'hidden',
+                            cursor: 'pointer'
+                        }}>
                         <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>notifications</span>
                         <span className="blink-pulse" style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', width: '0.5rem', height: '0.5rem', backgroundColor: '#ef4444', border: '1.5px solid var(--color-surface)', borderRadius: '50%' }}></span>
                     </div>

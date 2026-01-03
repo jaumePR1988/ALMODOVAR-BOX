@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { MainLayout } from '../components/MainLayout';
+import { NotificationsView } from './NotificationsView';
+import { ConsentModal } from '../components/ConsentModal';
+import { PerfilView } from './PerfilView';
 
 export const DashboardView: React.FC = () => {
     const { user, userData } = useAuth();
@@ -9,19 +12,25 @@ export const DashboardView: React.FC = () => {
     const renderContent = () => {
         switch (activeTab) {
             case 'inicio':
-                return <InicioSection />;
+                return <InicioSection membership={userData?.membership || 'fit'} />;
             case 'retos':
                 return <div className="section-padding text-center" style={{ marginTop: '2rem' }}>Próximos Retos Almodóvar (Próximamente)</div>;
             case 'reservas':
-                return <ReservasSection />;
+                return <ReservasSection membership={userData?.membership || 'fit'} />;
             case 'noticias':
                 return <div className="section-padding text-center" style={{ marginTop: '2rem' }}>Últimas Noticias (Próximamente)</div>;
             case 'perfil':
-                return <div className="section-padding text-center" style={{ marginTop: '2rem' }}>Mi Perfil de Atleta (Próximamente)</div>;
+                return <PerfilView />;
+            case 'notificaciones':
+                return <NotificationsView />;
             default:
-                return <InicioSection />;
+                return <InicioSection membership={userData?.membership || 'fit'} />;
         }
     };
+
+    const hasConsents = userData?.consents?.terms && userData?.consents?.imageRights;
+    const [overrideModal, setOverrideModal] = useState(false);
+    const showConsentModal = !hasConsents && !overrideModal;
 
     return (
         <MainLayout
@@ -29,25 +38,40 @@ export const DashboardView: React.FC = () => {
             onTabChange={setActiveTab}
             userName={userData?.firstName || user?.displayName || user?.email?.split('@')[0]}
         >
-            <div className="scroll-container hide-scrollbar">
+            {showConsentModal && <ConsentModal onComplete={() => setOverrideModal(true)} />}
+            <div className={`scroll-container hide-scrollbar ${showConsentModal ? 'blur-sm pointer-events-none' : ''}`}>
                 {renderContent()}
             </div>
         </MainLayout>
     );
 };
 
-const InicioSection: React.FC = () => {
+const InicioSection: React.FC<{ membership?: 'box' | 'fit' }> = ({ membership }) => {
+    // Monthly Calculation Logic (Mocked)
+    const monthlyLimit = membership === 'box' ? 12 : 16;
+    const usedSessions = 4;
+    const coachAssists = 1;
+    const lateCancellations = 0; // Cancelled < 1 hour before
+    // If cancelled > 1h, it is returned to the pool (so not added here)
+
+    const availableMonthly = monthlyLimit - (usedSessions + coachAssists + lateCancellations);
+
+    // Weekly Calculation Logic (Mocked)
+    const weeklyLimit = membership === 'box' ? 2 : 3;
+    const attendedThisWeek = 1;
+    const remainingWeekly = weeklyLimit - attendedThisWeek;
+
     return (
         <div style={{ paddingTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {/* Stats Grid */}
             <section className="section-padding" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="card-premium">
-                    <span className="text-3xl font-bold" style={{ color: 'var(--color-primary)', display: 'block' }}>12</span>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Clases este mes</span>
+                    <span className="text-3xl font-bold" style={{ color: 'var(--color-primary)', display: 'block' }}>{availableMonthly}</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Clases disponibles al mes</span>
                 </div>
                 <div className="card-premium">
-                    <span className="text-3xl font-bold" style={{ display: 'block' }}>3</span>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Clases restantes</span>
+                    <span className="text-3xl font-bold" style={{ display: 'block', color: 'white' }}>{remainingWeekly}</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Clases restantes (sem)</span>
                 </div>
             </section>
 
@@ -80,14 +104,14 @@ const InicioSection: React.FC = () => {
             <section className="section-padding">
                 <h2 className="heading-section">Reservar nueva sesión</h2>
                 <div className="box-grid">
-                    <button className="box-card">
+                    <button className={`box-card ${membership === 'fit' ? 'disabled' : ''}`}>
                         <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400" alt="Box" />
                         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
                             <span style={{ color: 'white', fontWeight: 900, fontSize: '1rem', textTransform: 'uppercase', display: 'block' }}>Almodovar</span>
                             <span className="box-label-box" style={{ fontWeight: 900, fontSize: '1.5rem' }}>BOX</span>
                         </div>
                     </button>
-                    <button className="box-card" style={{ border: '1px solid var(--color-border)' }}>
+                    <button className={`box-card ${membership === 'box' ? 'disabled' : ''}`} style={{ border: '1px solid var(--color-border)' }}>
                         <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=400" alt="Fit" />
                         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
                             <span style={{ color: 'white', fontWeight: 900, fontSize: '1rem', textTransform: 'uppercase', display: 'block' }}>Almodovar</span>
@@ -100,7 +124,12 @@ const InicioSection: React.FC = () => {
     );
 };
 
-const ReservasSection: React.FC = () => {
+const ReservasSection: React.FC<{ membership?: 'box' | 'fit' }> = ({ membership }) => {
+    const weeklyLimit = membership === 'box' ? 2 : 3;
+    const attendedThisWeek = 1; // Mocked
+    const remaining = weeklyLimit - attendedThisWeek;
+    const canReserve = remaining > 0;
+
     return (
         <div style={{ paddingTop: '1.5rem' }}>
             <section className="section-padding">
@@ -132,7 +161,22 @@ const ReservasSection: React.FC = () => {
                             <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0 }}>Sesión libre • 60 min</p>
                         </div>
                     </div>
-                    <button style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-main)', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600 }}>Reservar</button>
+                    <button
+                        disabled={!canReserve}
+                        style={{
+                            backgroundColor: canReserve ? 'var(--color-bg)' : 'transparent',
+                            color: canReserve ? 'var(--color-text-main)' : 'var(--color-text-muted)',
+                            border: canReserve ? 'none' : '1px solid var(--color-border)',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '8px',
+                            fontSize: '0.875rem',
+                            fontWeight: 600,
+                            opacity: canReserve ? 1 : 0.5,
+                            cursor: canReserve ? 'pointer' : 'not-allowed'
+                        }}
+                    >
+                        {canReserve ? 'Reservar' : 'Límite alcanzado'}
+                    </button>
                 </div>
 
                 <div className="session-item" style={{ borderLeftColor: 'var(--color-primary)', opacity: 0.6 }}>

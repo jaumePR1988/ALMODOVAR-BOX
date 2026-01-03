@@ -25,12 +25,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
             </div>
 
             <div
-                className={`nav-fab ${activeTab === 'reservas' ? 'active' : ''}`}
-                style={{ flexShrink: 0 }}
+                className={`nav-fab-container ${activeTab === 'reservas' ? 'active' : ''}`}
                 onClick={() => onTabChange('reservas')}
             >
-                <span className="material-icons-round">add</span>
-                <span>Reservar</span>
+                <div className="nav-fab-sphere">
+                    <span className="material-icons-round">add</span>
+                </div>
+                <span className="nav-fab-label">Reservar</span>
             </div>
 
             <div
