@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ClassAttendeesModal } from '../components/ClassAttendeesModal';
+import { WODReportView } from './WODReportView';
 
 interface ClassDetailViewProps {
     classData: any; // Replace with proper type later
@@ -16,11 +17,28 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
     const spotsLeft = capacity - enrolled;
 
     // Check if user is already booked (Status check)
-    const isBooked = classData.status === 'upcoming';
-    const isCancelled = classData.status === 'cancelled';
     const isAttended = classData.status === 'attended';
 
     const [showAttendees, setShowAttendees] = useState(false);
+    const [showWODReport, setShowWODReport] = useState(false);
+    const [wodExercises, setWodExercises] = useState<any[]>([]);
+
+    const storageKey = `wod_${classData.title}_${classData.date}`;
+
+    React.useEffect(() => {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+            setWodExercises(JSON.parse(saved));
+        }
+    }, [storageKey]);
+
+    if (showWODReport) {
+        return <WODReportView
+            classData={classData}
+            wodExercises={wodExercises}
+            onBack={() => setShowWODReport(false)}
+        />;
+    }
 
     return (
         <div style={{
@@ -325,22 +343,25 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                         ))}
                     </div>
 
-                    <button style={{
-                        width: '100%',
-                        marginTop: '1.5rem',
-                        padding: '0.75rem',
-                        backgroundColor: 'transparent',
-                        border: '1px solid var(--color-primary)',
-                        borderRadius: '0.5rem',
-                        color: 'var(--color-primary)',
-                        fontWeight: 700,
-                        fontSize: '0.875rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        cursor: 'pointer'
-                    }}>
+                    <button
+                        onClick={() => setShowWODReport(true)}
+                        style={{
+                            width: '100%',
+                            marginTop: '1.5rem',
+                            padding: '0.75rem',
+                            backgroundColor: 'transparent',
+                            border: '1px solid var(--color-primary)',
+                            borderRadius: '0.5rem',
+                            color: 'var(--color-primary)',
+                            fontWeight: 700,
+                            fontSize: '0.875rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            cursor: 'pointer'
+                        }}
+                    >
                         <span className="material-icons-round">fitness_center</span>
                         Ver sesión completa
                     </button>

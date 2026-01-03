@@ -1,4 +1,5 @@
 import React from 'react';
+import logo from '../assets/logo.png';
 
 interface WODReportViewProps {
     classData: any;
@@ -52,6 +53,7 @@ export const WODReportView: React.FC<WODReportViewProps> = ({ classData, wodExer
                 </button>
 
                 <div style={{ marginBottom: '1rem' }}>
+                    <img src={logo} alt="Almodovar Box Logo" style={{ height: '3.5rem', marginBottom: '1rem', objectFit: 'contain' }} />
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.1em', margin: 0, color: 'var(--color-primary)' }}>ALMODOVAR BOX</h1>
                     <p style={{ fontSize: '0.75rem', fontWeight: 500, opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0.25rem 0 0 0' }}>Training Session Report</p>
                 </div>
@@ -89,42 +91,49 @@ export const WODReportView: React.FC<WODReportViewProps> = ({ classData, wodExer
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    {wodExercises.map((ex, index) => (
-                        <div key={ex.id} style={{ display: 'flex', gap: '1rem', borderBottom: index === wodExercises.length - 1 ? 'none' : '1px solid #f0f0f0', paddingBottom: '1.5rem' }}>
-                            <div style={{
-                                width: '3.5rem',
-                                height: '3.5rem',
-                                backgroundColor: '#f8f8f8',
-                                borderRadius: '0.75rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                                fontWeight: 900,
-                                fontSize: '1.25rem',
-                                color: '#ddd'
-                            }}>
-                                {String(index + 1).padStart(2, '0')}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <h4 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>{ex.name}</h4>
-                                    <span style={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-primary)', padding: '0.125rem 0.5rem', backgroundColor: 'rgba(var(--color-primary-rgb), 0.1)', borderRadius: '0.25rem' }}>{ex.category}</span>
-                                </div>
-                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: '0.625rem', fontWeight: 600, color: '#999', textTransform: 'uppercase' }}>Series</span>
-                                        <span style={{ fontSize: '1.25rem', fontWeight: 900 }}>{ex.series || '-'}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: '0.625rem', fontWeight: 600, color: '#999', textTransform: 'uppercase' }}>Repeticiones</span>
-                                        <span style={{ fontSize: '1.25rem', fontWeight: 900 }}>{ex.reps || '-'}</span>
-                                    </div>
-                                </div>
-                                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem', fontStyle: 'italic' }}>{ex.description}</p>
-                            </div>
+                    {wodExercises.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '3rem 0', color: '#999' }}>
+                            <span className="material-icons-round" style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>fitness_center</span>
+                            <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>La planificación para esta sesión aún no ha sido publicada.</p>
                         </div>
-                    ))}
+                    ) : (
+                        wodExercises.map((ex, index) => (
+                            <div key={ex.id} style={{ display: 'flex', gap: '1rem', borderBottom: index === wodExercises.length - 1 ? 'none' : '1px solid #f0f0f0', paddingBottom: '1.5rem' }}>
+                                <div style={{
+                                    width: '3.5rem',
+                                    height: '3.5rem',
+                                    backgroundColor: '#f8f8f8',
+                                    borderRadius: '0.75rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                    fontWeight: 900,
+                                    fontSize: '1.25rem',
+                                    color: '#ddd'
+                                }}>
+                                    {String(index + 1).padStart(2, '0')}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <h4 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>{ex.name}</h4>
+                                        <span style={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-primary)', padding: '0.125rem 0.5rem', backgroundColor: 'rgba(var(--color-primary-rgb), 0.1)', borderRadius: '0.25rem' }}>{ex.category}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '0.625rem', fontWeight: 600, color: '#999', textTransform: 'uppercase' }}>Series</span>
+                                            <span style={{ fontSize: '1.25rem', fontWeight: 900 }}>{ex.series || '-'}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '0.625rem', fontWeight: 600, color: '#999', textTransform: 'uppercase' }}>Repeticiones</span>
+                                            <span style={{ fontSize: '1.25rem', fontWeight: 900 }}>{ex.reps || '-'}</span>
+                                        </div>
+                                    </div>
+                                    <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem', fontStyle: 'italic' }}>{ex.description}</p>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
 
                 {/* Footer Quote / Branding */}

@@ -7,10 +7,9 @@ import { WODReportView } from './WODReportView';
 interface CoachClassDetailViewProps {
     classData: any;
     onBack: () => void;
-    onViewList: () => void;
 }
 
-export const CoachClassDetailView: React.FC<CoachClassDetailViewProps> = ({ classData, onBack, onViewList }) => {
+export const CoachClassDetailView: React.FC<CoachClassDetailViewProps> = ({ classData, onBack }) => {
     // Default values if data is missing
     const enrolledCount = classData.enrolled ?? 8;
     const capacity = classData.capacity ?? 10;
@@ -43,6 +42,21 @@ export const CoachClassDetailView: React.FC<CoachClassDetailViewProps> = ({ clas
 
     const handleRemoveExercise = (id: number) => {
         setWodExercises(wodExercises.filter(e => e.id !== id));
+    };
+
+    // Persistence logic for the mock app
+    const storageKey = `wod_${classData.title}_${classData.date}`;
+
+    React.useEffect(() => {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+            setWodExercises(JSON.parse(saved));
+        }
+    }, [storageKey]);
+
+    const handleSaveWOD = () => {
+        localStorage.setItem(storageKey, JSON.stringify(wodExercises));
+        alert('Planificación guardada con éxito. Ahora es visible para los usuarios.');
     };
 
     if (showWODReport) {
@@ -392,6 +406,30 @@ export const CoachClassDetailView: React.FC<CoachClassDetailViewProps> = ({ clas
                         >
                             <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>description</span>
                             <span>Generar Informe WOD</span>
+                        </button>
+                    )}
+
+                    {wodExercises.length > 0 && (
+                        <button
+                            onClick={handleSaveWOD}
+                            style={{
+                                width: '100%',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                color: '#22c55e',
+                                border: '1px solid #22c55e',
+                                borderRadius: '0.75rem',
+                                padding: '0.75rem',
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                cursor: 'pointer',
+                                marginBottom: '1rem'
+                            }}
+                        >
+                            <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>save</span>
+                            <span>Guardar Planificación</span>
                         </button>
                     )}
 

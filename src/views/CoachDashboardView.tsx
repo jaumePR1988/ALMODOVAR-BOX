@@ -286,7 +286,6 @@ export const CoachDashboardView: React.FC = () => {
                         <CoachClassDetailView
                             classData={selectedClass}
                             onBack={() => setSelectedClass(null)}
-                            onViewList={() => { }}
                         />
                     </div>
                 )}
