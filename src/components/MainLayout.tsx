@@ -10,14 +10,15 @@ interface MainLayoutProps {
     userName?: string;
     userPhotoUrl?: string;
     hideNav?: boolean;
+    hideHeader?: boolean;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onTabChange, userName, userPhotoUrl, hideNav }) => {
+export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onTabChange, userName, userPhotoUrl, hideNav, hideHeader }) => {
     const { theme, toggleTheme } = useTheme();
     return (
         <div className="app-container">
             {/* Native-Like Fixed Header */}
-            {!hideNav && (
+            {!hideNav && !hideHeader && (
                 <header style={{
                     position: 'sticky',
                     top: 0,

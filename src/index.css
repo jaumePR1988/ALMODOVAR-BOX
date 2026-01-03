@@ -359,7 +359,7 @@ body {
 
 .nav-fab-label {
   font-size: 0.65rem;
-  color: white;
+  color: var(--color-text-muted);
   font-weight: 700;
   letter-spacing: 0.025em;
   margin-top: 0.25rem;

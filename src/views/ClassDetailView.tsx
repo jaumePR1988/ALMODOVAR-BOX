@@ -1,15 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ClassAttendeesModal } from '../components/ClassAttendeesModal';
 
 interface ClassDetailViewProps {
     classData: any; // Replace with proper type later
     onBack: () => void;
+    onBook: () => void;
 }
 
-export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onBack }) => {
+export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onBack, onBook }) => {
+    // Default values if data is missing
+    const enrolled = classData.enrolled ?? 8;
+    const capacity = classData.capacity ?? 10;
+    const isFull = enrolled >= capacity;
+    const spotsLeft = capacity - enrolled;
+
+    const [showAttendees, setShowAttendees] = useState(false);
+
     return (
         <div style={{
             height: '100dvh', // Changed from minHeight to height for scroll
-            backgroundColor: '#111827',
+            backgroundColor: 'var(--color-bg)',
             display: 'flex',
             flexDirection: 'column',
             position: 'fixed',
@@ -20,7 +30,7 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
             maxWidth: '480px', // Mobile constraint
             zIndex: 2000,
             overflowY: 'auto',
-            color: '#F9FAFB',
+            color: 'var(--color-text-main)',
             boxShadow: '0 0 20px rgba(0,0,0,0.5)' // Shadow to separate from background on large screens
         }}>
             {/* Header */}
@@ -32,9 +42,9 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                 left: '50%', // Center
                 transform: 'translateX(-50%)', // Center
                 zIndex: 2010,
-                backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                backgroundColor: 'var(--color-bg-translucent)',
                 backdropFilter: 'blur(12px)',
-                borderBottom: '1px solid #374151',
+                borderBottom: '1px solid var(--color-border)',
                 height: '64px',
                 display: 'flex',
                 alignItems: 'center',
@@ -53,16 +63,16 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                         cursor: 'pointer'
                     }}
                 >
-                    <span className="material-icons-round" style={{ fontSize: '1.5rem', color: '#F9FAFB' }}>arrow_back_ios_new</span>
+                    <span className="material-icons-round" style={{ fontSize: '1.5rem', color: 'var(--color-text-main)' }}>arrow_back_ios_new</span>
                 </button>
-                <h1 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#F9FAFB' }}>Detalles de Clase</h1>
+                <h1 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text-main)' }}>Detalles de Clase</h1>
                 <div style={{ width: '2.5rem' }}></div> {/* Spacer */}
             </header>
 
             {/* Main Content */}
             <main style={{
                 flexGrow: 1,
-                padding: '5rem 1rem 6rem 1rem',
+                padding: '5rem 1rem 10rem 1rem',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1.5rem',
@@ -108,27 +118,27 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     {/* Date Card */}
                     <div style={{
-                        backgroundColor: '#1F2937',
+                        backgroundColor: 'var(--color-surface)',
                         padding: '1rem',
                         borderRadius: '0.75rem',
-                        border: '1px solid #374151',
+                        border: '1px solid var(--color-border)',
                         textAlign: 'center',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center'
                     }}>
                         <span className="material-icons-round" style={{ fontSize: '1.875rem', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>calendar_today</span>
-                        <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.05em' }}>Fecha</p>
-                        <p style={{ fontWeight: 600, color: '#F9FAFB', marginTop: '0.25rem', fontSize: '1.1rem' }}>{classData.date}</p>
-                        <p style={{ fontSize: '0.875rem', color: '#9CA3AF' }}>{classData.time}</p>
+                        <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>Fecha</p>
+                        <p style={{ fontWeight: 600, color: 'var(--color-text-main)', marginTop: '0.25rem', fontSize: '1.1rem' }}>{classData.date}</p>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{classData.time}</p>
                     </div>
 
                     {/* Coach Card */}
                     <div style={{
-                        backgroundColor: '#1F2937',
+                        backgroundColor: 'var(--color-surface)',
                         padding: '1rem',
                         borderRadius: '0.75rem',
-                        border: '1px solid #374151',
+                        border: '1px solid var(--color-border)',
                         textAlign: 'center',
                         display: 'flex',
                         flexDirection: 'column',
@@ -145,28 +155,54 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                         }}>
                             <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=100" alt="Coach" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
-                        <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.05em' }}>Coach</p>
-                        <p style={{ fontWeight: 600, color: '#F9FAFB', marginTop: '0.25rem' }}>{classData.coach}</p>
-                        <p style={{ fontSize: '0.875rem', color: '#9CA3AF' }}>Head Coach</p>
+                        <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>Coach</p>
+                        <p style={{ fontWeight: 600, color: 'var(--color-text-main)', marginTop: '0.25rem' }}>{classData.coach}</p>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Head Coach</p>
                     </div>
                 </div>
 
-                {/* Availability */}
-                <div style={{ backgroundColor: '#1F2937', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #374151' }}>
+                {/* Availability - Clickable */}
+                <div
+                    onClick={() => setShowAttendees(true)}
+                    style={{
+                        backgroundColor: 'var(--color-surface)',
+                        padding: '1.25rem',
+                        borderRadius: '0.75rem',
+                        border: '1px solid var(--color-border)',
+                        cursor: 'pointer',
+                        transition: 'transform 0.1s',
+                        transform: 'scale(1)',
+                        // Hover effect handled in CSS usually, but inline for simple react
+                    }}
+                    onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+                    onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.5rem' }}>
                         <div>
-                            <h3 style={{ fontWeight: 700, color: '#F9FAFB', margin: 0 }}>Disponibilidad</h3>
-                            <p style={{ fontSize: '0.875rem', color: '#9CA3AF', margin: 0 }}>Plazas limitadas por sesión</p>
+                            <h3 style={{
+                                fontWeight: 800,
+                                color: 'var(--color-text-main)',
+                                margin: 0,
+                                fontSize: '1.25rem',
+                                letterSpacing: '-0.025em',
+                                textTransform: 'uppercase'
+                            }}>
+                                Disponibilidad
+                            </h3>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', margin: 0 }}>Plazas limitadas por sesión</p>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                            <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>8</span>
-                            <span style={{ color: '#9CA3AF', fontSize: '0.875rem' }}>/ 10</span>
+                            <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>{enrolled}</span>
+                            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>/ {capacity}</span>
                         </div>
                     </div>
-                    <div style={{ width: '100%', backgroundColor: '#374151', borderRadius: '9999px', height: '0.75rem', overflow: 'hidden' }}>
-                        <div style={{ width: '80%', backgroundColor: 'var(--color-primary)', height: '100%', borderRadius: '9999px' }}></div>
+                    <div style={{ width: '100%', backgroundColor: 'var(--color-bg)', borderRadius: '9999px', height: '0.75rem', overflow: 'hidden' }}>
+                        <div style={{ width: `${(enrolled / capacity) * 100}%`, backgroundColor: isFull ? '#f97316' : 'var(--color-primary)', height: '100%', borderRadius: '9999px' }}></div>
                     </div>
-                    <p style={{ fontSize: '0.75rem', color: '#9CA3AF', textAlign: 'right', marginTop: '0.5rem' }}>¡Quedan 2 plazas!</p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textAlign: 'right', marginTop: '0.5rem' }}>
+                        {isFull ? '¡Completo!' : `¡Quedan ${spotsLeft} plazas!`}
+                    </p>
 
                     {/* Friends (Mock) */}
                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
@@ -180,21 +216,61 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                                 </div>
                             ))}
                             <div style={{
-                                width: '2rem', height: '2rem', borderRadius: '50%', backgroundColor: '#374151',
-                                marginLeft: '-0.5rem', border: '2px solid #1F2937', display: 'flex',
-                                alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#D1D5DB', fontWeight: 600
+                                width: '2rem', height: '2rem', borderRadius: '50%', backgroundColor: 'var(--color-surface)',
+                                marginLeft: '-0.5rem', border: '2px solid var(--color-bg)', display: 'flex',
+                                alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600
                             }}>
                                 +15
                             </div>
                         </div>
-                        <p style={{ fontSize: '0.875rem', color: '#9CA3AF', marginLeft: '1rem' }}>Amigos asistiendo</p>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginLeft: '1rem', fontWeight: 600, textDecoration: 'underline' }}>
+                            Ver asistentes y Lista de espera
+                        </p>
                     </div>
                 </div>
 
+                {/* Booking Section - Reordered */}
+                <div style={{
+                    backgroundColor: 'var(--color-surface)',
+                    padding: '1rem',
+                    borderRadius: '0.75rem',
+                    border: '1px solid var(--color-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem'
+                }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{isFull ? 'Pre-reserva' : 'Total a pagar'}</span>
+                        <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-main)' }}>{isFull ? '0 Créditos' : '1 Crédito'}</span>
+                    </div>
+                    <button
+                        onClick={onBook}
+                        style={{
+                            flex: 1,
+                            backgroundColor: isFull ? '#f97316' : 'var(--color-primary)', // Orange for Waitlist, Red for Book
+                            color: 'white',
+                            fontWeight: 700,
+                            padding: '0.875rem 1.5rem',
+                            borderRadius: '0.75rem',
+                            border: 'none',
+                            boxShadow: isFull ? '0 4px 12px rgba(249, 115, 22, 0.3)' : '0 4px 12px rgba(211, 0, 31, 0.3)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            cursor: 'pointer'
+                        }}>
+                        <span className="material-icons-round">
+                            {isFull ? 'hourglass_empty' : 'check_circle'}
+                        </span>
+                        {isFull ? 'Unirse a Lista de Espera' : 'Reservar Plaza'}
+                    </button>
+                </div>
+
                 {/* About */}
-                <div style={{ backgroundColor: '#1F2937', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #374151' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '0.75rem', color: '#F9FAFB' }}>Sobre la clase</h3>
-                    <p style={{ fontSize: '0.875rem', color: '#9CA3AF', lineHeight: '1.6', marginBottom: '1rem' }}>
+                <div style={{ backgroundColor: 'var(--color-surface)', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--color-text-main)' }}>Sobre la clase</h3>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: '1.6', marginBottom: '1rem' }}>
                         Sesión de intervalos de fuerza funcional, golpeos de boxeo, patadas y estiramientos guiados. Un entrenamiento completo para transformar tu cuerpo y mente.
                     </p>
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -211,58 +287,50 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                             </span>
                         ))}
                     </div>
-                </div>
 
-                {/* Location */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.5rem' }}>
-                    <span className="material-icons-round" style={{ color: '#9CA3AF' }}>location_on</span>
-                    <div>
-                        <h4 style={{ fontWeight: 600, color: '#F9FAFB', margin: 0 }}>Almodovar Group Gym</h4>
-                        <p style={{ fontSize: '0.875rem', color: '#9CA3AF', margin: 0 }}>Av. dels Rabassaires, 30, Mollet del Vallès</p>
-                    </div>
-                </div>
-            </main>
-
-            {/* Footer */}
-            <footer style={{
-                position: 'fixed',
-                bottom: 0,
-                width: '100%',
-                maxWidth: '480px', // Constraint
-                left: '50%', // Center
-                transform: 'translateX(-50%)', // Center
-                backgroundColor: '#1F2937',
-                borderTop: '1px solid #374151',
-                padding: '1rem',
-                paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
-                zIndex: 2010,
-                boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.2)'
-            }}>
-                <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>Total a pagar</span>
-                        <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#F9FAFB' }}>1 Crédito</span>
-                    </div>
                     <button style={{
-                        flex: 1,
-                        backgroundColor: 'var(--color-primary)',
-                        color: 'white',
+                        width: '100%',
+                        marginTop: '1.5rem',
+                        padding: '0.75rem',
+                        backgroundColor: 'transparent',
+                        border: '1px solid var(--color-primary)',
+                        borderRadius: '0.5rem',
+                        color: 'var(--color-primary)',
                         fontWeight: 700,
-                        padding: '0.875rem 1.5rem',
-                        borderRadius: '0.75rem',
-                        border: 'none',
-                        boxShadow: '0 4px 12px rgba(211, 0, 31, 0.3)',
+                        fontSize: '0.875rem',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '0.5rem',
                         cursor: 'pointer'
                     }}>
-                        <span className="material-icons-round">check_circle</span>
-                        Reservar Plaza
+                        <span className="material-icons-round">fitness_center</span>
+                        Ver sesión completa
                     </button>
                 </div>
-            </footer>
+
+
+
+
+                {/* Location */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.5rem' }}>
+                    <span className="material-icons-round" style={{ color: 'var(--color-text-muted)' }}>location_on</span>
+                    <div>
+                        <h4 style={{ fontWeight: 600, color: 'var(--color-text-main)', margin: 0 }}>Almodovar Group Gym</h4>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', margin: 0 }}>Av. dels Rabassaires, 30, Mollet del Vallès</p>
+                    </div>
+                </div>
+            </main>
+
+            {showAttendees && (
+                <ClassAttendeesModal
+                    onClose={() => setShowAttendees(false)}
+                    enrolled={enrolled}
+                    capacity={capacity}
+                    waitlistCount={isFull ? 2 : 0}
+                    userStatus={'none'} // Mocked for now, will be dynamic in future or via props
+                />
+            )}
         </div>
     );
 };
