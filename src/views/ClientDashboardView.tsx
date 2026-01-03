@@ -9,6 +9,7 @@ import { NotificationsSettingsView } from './NotificationsSettingsView';
 import { TermsView } from './TermsView';
 import { NewsView } from './NewsView';
 import { RetosView } from './RetosView';
+import { CommunityChatView } from './CommunityChatView';
 
 export const ClientDashboardView: React.FC = () => {
     const { user, userData } = useAuth();
@@ -205,6 +206,8 @@ export const ClientDashboardView: React.FC = () => {
                 return <TermsView />;
             case 'notificaciones':
                 return <NotificationsView />;
+            case 'chat':
+                return <CommunityChatView onBack={() => setActiveTab('inicio')} />;
             default:
                 return (
                     <InicioSection
@@ -234,8 +237,9 @@ export const ClientDashboardView: React.FC = () => {
             onTabChange={setActiveTab}
             userName={userData?.firstName || user?.displayName || user?.email?.split('@')[0]}
             userPhotoUrl={userData?.photoURL}
-            hideNav={activeTab === 'ajustes'}
-            hideHeader={activeTab === 'retos'}
+            hideNav={activeTab === 'ajustes' || activeTab === 'chat'} // Hide nav in chat
+            hideHeader={activeTab === 'retos' || activeTab === 'chat'} // Hide header in chat (it has its own)
+            onChatClick={() => setActiveTab('chat')}
         >
             {showConsentModal && <ConsentModal onComplete={() => setOverrideModal(true)} />}
 
@@ -296,7 +300,7 @@ export const ClientDashboardView: React.FC = () => {
                 </div>
             )}
 
-            <div className={`scroll-container ${showConsentModal ? 'blur-sm pointer-events-none' : ''}`}>
+            <div className={`scroll-container hide-scrollbar ${showConsentModal ? 'blur-sm pointer-events-none' : ''}`}>
                 {renderContent()}
             </div>
         </MainLayout>

@@ -132,7 +132,7 @@ export const RetosView: React.FC = () => {
                         key={f}
                         onClick={() => setFilter(f)}
                         style={{
-                            flex: 1, // Equal width
+                            flex: '1 1 0px', // Equal width enforced
                             height: '2.25rem',
                             display: 'flex',
                             alignItems: 'center',

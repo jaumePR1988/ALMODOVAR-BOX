@@ -11,9 +11,10 @@ interface MainLayoutProps {
     userPhotoUrl?: string;
     hideNav?: boolean;
     hideHeader?: boolean;
+    onChatClick?: () => void;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onTabChange, userName, userPhotoUrl, hideNav, hideHeader }) => {
+export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onTabChange, userName, userPhotoUrl, hideNav, hideHeader, onChatClick }) => {
     const { theme, toggleTheme } = useTheme();
     return (
         <div className="app-container">
@@ -56,6 +57,23 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onT
                     </div>
 
                     <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0, alignItems: 'center' }}>
+                        <div
+                            onClick={onChatClick}
+                            style={{
+                                width: '2.25rem',
+                                height: '2.25rem',
+                                backgroundColor: 'var(--color-surface)',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--color-text-main)',
+                                border: '1px solid var(--color-border)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}>
+                            <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>chat_bubble_outline</span>
+                        </div>
                         <div
                             onClick={() => onTabChange('notificaciones')}
                             style={{
