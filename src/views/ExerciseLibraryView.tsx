@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 
 interface ExerciseLibraryViewProps {
     onBack: () => void;
+    onSelect?: (exercise: any) => void;
 }
 
-export const ExerciseLibraryView: React.FC<ExerciseLibraryViewProps> = ({ onBack }) => {
+export const ExerciseLibraryView: React.FC<ExerciseLibraryViewProps> = ({ onBack, onSelect }) => {
     // Mock Data based on HTML
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilter, setActiveFilter] = useState('Todos');
@@ -14,7 +15,7 @@ export const ExerciseLibraryView: React.FC<ExerciseLibraryViewProps> = ({ onBack
             id: 1,
             name: 'Back Squat',
             description: 'Barbell high bar squat for lower body.',
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBrd5b2oD4CmG3h3WgSgWZd5skT1gBU1KpBR9yKO-_uVPZi6xZ6ItqnUoXhhISJuusQWRZhkDaFLUayf6ZCl8iTHlRCVrzvGjQ1opLxlU5PTv6NEt2ztgP00eP41VU9sugsH5T-gMF7eO0aLS7_E0mHU2D3gDtvAlm4NK8rA744pGrbSwkVIZD17F4uPv6tT2PNInziuDkMGJYzAuZU2PJdnvFYpJNgL5ND0IG0nXwhqhR0xrHyrkSyGyj24pXLKVdoUdGj-TulXZ8",
+            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBrd5b2oD4CmG3h3WgSgWZd5skT1gBU1KpBR9yKO-_uVPZi6xZ6ItqnUoXhhISJuusQWRZhkDaFLUayf6ZCl8iTHlRCVrzvGjQ1opLxlU5PTv6NEt2ztgP00eP41WU9sugsH5T-gMF7eO0aLS7_E0mHU2D3gDtvAlm4NK8rA744pGrbSwkVIZD17F4uPv6tT2PNInziuDkMGJYzAuZU2PJdnvFYpJNgL5ND0IG0nXwhqhR0xrHyrkSyGyj24pXLKVdoUdGj-TulXZ8",
             tags: ['Fuerza', 'Piernas'],
             category: 'Fuerza'
         },
@@ -174,7 +175,8 @@ export const ExerciseLibraryView: React.FC<ExerciseLibraryViewProps> = ({ onBack
                             gap: '1rem',
                             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
                             transition: 'transform 0.2s',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            position: 'relative'
                         }}>
                             <div style={{ width: '6rem', height: '6rem', borderRadius: '0.75rem', backgroundColor: 'var(--color-bg)', flexShrink: 0, overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 {ex.image ? (
@@ -185,7 +187,32 @@ export const ExerciseLibraryView: React.FC<ExerciseLibraryViewProps> = ({ onBack
                             </div>
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0.125rem 0' }}>
                                 <div>
-                                    <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, lineHeight: 1.25 }}>{ex.name}</h3>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, lineHeight: 1.25 }}>{ex.name}</h3>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onSelect?.(ex);
+                                            }}
+                                            style={{
+                                                backgroundColor: 'var(--color-primary)',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '50%',
+                                                width: '1.75rem',
+                                                height: '1.75rem',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                cursor: 'pointer',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                marginTop: '-0.25rem',
+                                                marginRight: '-0.25rem'
+                                            }}
+                                        >
+                                            <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>add</span>
+                                        </button>
+                                    </div>
                                     <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: '0.25rem 0 0.5rem 0', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{ex.description}</p>
                                     <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
                                         <span style={{ fontSize: '0.625rem', padding: '0.125rem 0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', borderRadius: '0.25rem' }}>{ex.category}</span>

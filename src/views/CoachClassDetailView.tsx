@@ -24,13 +24,28 @@ export const CoachClassDetailView: React.FC<CoachClassDetailViewProps> = ({ clas
     const [showAttendees, setShowAttendees] = useState(false);
     const [showAttendanceList, setShowAttendanceList] = useState(false);
     const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
+    const [wodExercises, setWodExercises] = useState<any[]>([]);
+
+    const handleAddExercise = (exercise: any) => {
+        if (!wodExercises.find(e => e.id === exercise.id)) {
+            setWodExercises([...wodExercises, exercise]);
+        }
+        setShowExerciseLibrary(false);
+    };
+
+    const handleRemoveExercise = (id: number) => {
+        setWodExercises(wodExercises.filter(e => e.id !== id));
+    };
 
     if (showAttendanceList) {
         return <AttendanceView classData={classData} onBack={() => setShowAttendanceList(false)} />;
     }
 
     if (showExerciseLibrary) {
-        return <ExerciseLibraryView onBack={() => setShowExerciseLibrary(false)} />;
+        return <ExerciseLibraryView
+            onBack={() => setShowExerciseLibrary(false)}
+            onSelect={handleAddExercise}
+        />;
     }
 
     return (
@@ -269,15 +284,54 @@ export const CoachClassDetailView: React.FC<CoachClassDetailViewProps> = ({ clas
 
                 {/* About */}
                 <div style={{ backgroundColor: 'var(--color-surface)', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--color-text-main)' }}>Planificación (WOD)</h3>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: '1.6', marginBottom: '1rem' }}>
-                        <strong>Warm-up:</strong> 5' Joint mobility + 5' Skipping<br />
-                        <strong>Skill:</strong> Snatch technique (15')<br />
-                        <strong>WOD:</strong> AMRAP 20'<br />
-                        - 10 Power Snatch<br />
-                        - 15 Box Jumps<br />
-                        - 20 Double Unders
-                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>Planificación (WOD)</h3>
+                        {wodExercises.length > 0 && (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 600 }}>{wodExercises.length} ejercicios</span>
+                        )}
+                    </div>
+
+                    {wodExercises.length === 0 ? (
+                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: '1.6', marginBottom: '1rem' }}>
+                            <strong>Warm-up:</strong> 5' Joint mobility + 5' Skipping<br />
+                            <strong>Skill:</strong> Snatch technique (15')<br />
+                            <strong>WOD:</strong> Aún no se han añadido ejercicios personalizados.
+                        </p>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
+                            {wodExercises.map(ex => (
+                                <div key={ex.id} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.75rem',
+                                    backgroundColor: 'var(--color-bg)',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.75rem',
+                                    border: '1px solid var(--color-border)'
+                                }}>
+                                    <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0 }}>
+                                        {ex.image ? (
+                                            <img src={ex.image} alt={ex.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <span className="material-icons-round" style={{ fontSize: '1.25rem', color: 'var(--color-text-muted)' }}>fitness_center</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <p style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{ex.name}</p>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0 }}>{ex.category}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleRemoveExercise(ex.id)}
+                                        style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '0.25rem' }}
+                                    >
+                                        <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>close</span>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     <button
                         onClick={() => setShowExerciseLibrary(true)}
