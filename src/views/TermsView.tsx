@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { BaseLegalView } from './BaseLegalView';
 
 export const TermsView: React.FC = () => {
     return (
         <BaseLegalView title="Condiciones de Uso y Política de Privacidad">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: '2rem' }}>
                 <p><strong>Almodóvar Group (integrado por Almodóvar Fit y Almodóvar Box)</strong></p>
 
                 <section>

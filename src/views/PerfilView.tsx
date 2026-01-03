@@ -1,22 +1,155 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { storage, db } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, updateDoc } from 'firebase/firestore';
 
-export const PerfilView: React.FC = () => {
-    // Cast to any to bypass temporary build error with tsc -b
-    const { userData } = useAuth() as any;
+interface PerfilViewProps {
+    onSettingsClick?: () => void;
+}
+
+export const PerfilView: React.FC<PerfilViewProps> = ({ onSettingsClick }) => {
+    const { userData, user } = useAuth();
     const membership = userData?.membership || 'fit'; // Default to fit
 
-    // Mock Data for Profile
-    const stats = {
-        totalClasses: 24,
-        activeMonths: 5
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editName, setEditName] = useState(userData?.firstName || '');
+    const [editLastName, setEditLastName] = useState(userData?.lastName || '');
+    const [showAllHistory, setShowAllHistory] = useState(false);
+
+    const [localPhotoPreview, setLocalPhotoPreview] = useState<string | null>(null);
+    const [optimisticName, setOptimisticName] = useState<string | null>(null);
+    const [optimisticLastName, setOptimisticLastName] = useState<string | null>(null);
+
+    // Renewal Date Logic: 1st of next month
+    const today = new Date();
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    const renewalDate = nextMonth.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    // Calucate real stats
+    const calculateActiveMonths = () => {
+        if (!userData?.createdAt) return 0;
+        try {
+            // Check if it's a Firestore Timestamp (has toDate) or a date string/object
+            const created = userData.createdAt.toDate ? userData.createdAt.toDate() : new Date(userData.createdAt);
+            const now = new Date();
+            const months = (now.getFullYear() - created.getFullYear()) * 12 + (now.getMonth() - created.getMonth());
+            return Math.max(0, months); // Ensure no negative
+        } catch (e) {
+            console.warn("Error calculating active months", e);
+            return 0; // Fallback
+        }
     };
 
-    const history = [
+    const stats = {
+        totalClasses: userData?.totalClasses || 0, // Assumes this field exists or will exist
+        activeMonths: calculateActiveMonths()
+    };
+
+    const memberSinceYear = userData?.createdAt
+        ? (userData.createdAt.toDate ? userData.createdAt.toDate().getFullYear() : new Date(userData.createdAt).getFullYear())
+        : new Date().getFullYear();
+
+    const fullHistory = [
         { title: 'Open Box', date: '21 Oct • 10:00 AM', status: 'Asistido', color: 'green' },
         { title: 'Fit Boxing Kids (Invitado)', date: '18 Oct • 17:00 PM', status: 'Asistido', color: 'green' },
-        { title: 'Fit Boxing WOD', date: '15 Oct • 19:00 PM', status: 'Cancelado', color: 'red' }
+        { title: 'Fit Boxing WOD', date: '15 Oct • 19:00 PM', status: 'Cancelado', color: 'red' },
+        { title: 'Open Box', date: '12 Oct • 09:00 AM', status: 'Asistido', color: 'green' },
+        { title: 'Fit Boxing WOD', date: '10 Oct • 18:00 PM', status: 'Asistido', color: 'green' },
+        { title: 'Yoga Flex', date: '08 Oct • 10:00 AM', status: 'Asistido', color: 'green' }
     ];
+
+    const displayHistory = showAllHistory ? fullHistory : fullHistory.slice(0, 4);
+
+    const handleImageClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!user) {
+            alert("Error: No se ha detectado usuario activo.");
+            return;
+        }
+
+        // Validar tamaño < 5MB
+        if (file.size > 5 * 1024 * 1024) {
+            alert('La imagen es demasiado grande. Máximo 5MB.');
+            return;
+        }
+
+        // 1. Optimistic Update: Show local preview immediately
+        const objectUrl = URL.createObjectURL(file);
+        setLocalPhotoPreview(objectUrl);
+        setUploading(true); // Keep spinner but we show the image
+
+        try {
+            // Background Upload
+            const storageRef = ref(storage, `profile_images/${user.uid}`);
+            await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(storageRef);
+
+            await updateDoc(doc(db, 'users', user.uid), {
+                photoURL: downloadURL
+            });
+
+            // Success - Cleanup object URL
+            URL.revokeObjectURL(objectUrl);
+            setLocalPhotoPreview(null); // userData will take over via onSnapshot
+        } catch (error: any) {
+            console.error("Error uploading image:", error);
+            // Revert optimistic update
+            setLocalPhotoPreview(null);
+
+            if (error.message?.includes('network') || error.code === 'storage/retry-limit-exceeded' || error.code === 'storage/canceled') {
+                alert('Error de conexión o CORS. Si estás en local, asegúrate de configurar CORS en Firebase.');
+            } else if (error.code === 'storage/unauthorized') {
+                alert('Permiso denegado. Verifica las Reglas de Seguridad de Storage.');
+            } else {
+                alert(`Error al subir imagen: ${error.message || 'Desconocido'}`);
+            }
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleUpdateProfile = async () => {
+        if (!user) {
+            alert("Error: No usuario activo.");
+            return;
+        }
+
+        // 1. Optimistic Update: Close form and show new names immediately
+        setOptimisticName(editName);
+        setOptimisticLastName(editLastName);
+        setIsEditing(false);
+
+        try {
+            await updateDoc(doc(db, 'users', user.uid), {
+                firstName: editName,
+                lastName: editLastName
+            });
+            // Success - userData will eventually update via onSnapshot
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            alert('Error al guardar en la nube. Los cambios pueden no persistir.');
+            // Revert changes if needed or keep them locally
+            // In a real app we might re-open the form
+        } finally {
+            // Optional: Clear optimistic data after a delay if we want to ensure sync
+            // For now, keeping it set until unmount is fine, or until userData matches
+            setTimeout(() => {
+                setOptimisticName(null);
+                setOptimisticLastName(null);
+            }, 5000);
+        }
+    };
 
     return (
         <div style={{ paddingBottom: '6rem' }}>
@@ -34,17 +167,19 @@ export const PerfilView: React.FC = () => {
                 alignItems: 'center'
             }}>
                 <h1 style={{ fontSize: '1.125rem', fontWeight: 800, margin: 0 }}>Mi Perfil</h1>
-                <button style={{
-                    padding: '0.5rem',
-                    borderRadius: '50%',
-                    color: 'var(--color-primary)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
+                <button
+                    onClick={onSettingsClick}
+                    style={{
+                        padding: '0.5rem',
+                        borderRadius: '50%',
+                        color: 'var(--color-primary)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
                     <span className="material-icons-round">settings</span>
                 </button>
             </header>
@@ -74,8 +209,15 @@ export const PerfilView: React.FC = () => {
 
                     <div style={{ position: 'relative', zIndex: 10 }}>
                         <div style={{ position: 'relative', display: 'inline-block', marginBottom: '1rem' }}>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleImageUpload}
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                            />
                             <img
-                                src="https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&q=80&w=200"
+                                src={localPhotoPreview || userData?.photoURL || "https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&q=80&w=200"}
                                 alt="Profile"
                                 style={{
                                     width: '6rem',
@@ -83,43 +225,80 @@ export const PerfilView: React.FC = () => {
                                     borderRadius: '50%',
                                     objectFit: 'cover',
                                     border: '4px solid var(--color-bg)',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                    opacity: uploading ? 0.5 : 1
                                 }}
                             />
-                            <button style={{
-                                position: 'absolute',
-                                bottom: 0,
-                                right: 0,
-                                backgroundColor: 'var(--color-primary)',
-                                color: 'white',
-                                padding: '0.375rem',
-                                borderRadius: '50%',
-                                border: '2px solid var(--color-bg)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}>
-                                <span className="material-icons-round" style={{ fontSize: '0.875rem' }}>edit</span>
+                            <button
+                                onClick={handleImageClick}
+                                disabled={uploading}
+                                style={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    right: 0,
+                                    backgroundColor: 'var(--color-primary)',
+                                    color: 'white',
+                                    padding: '0.375rem',
+                                    borderRadius: '50%',
+                                    border: '2px solid var(--color-bg)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer'
+                                }}>
+                                <span className="material-icons-round" style={{ fontSize: '0.875rem' }}>
+                                    {uploading && !localPhotoPreview ? 'hourglass_empty' : 'edit'}
+                                </span>
                             </button>
                         </div>
 
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 0.25rem 0' }}>{userData?.firstName || 'Atleta Almodovar'}</h2>
-                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', margin: '0 0 1rem 0' }}>Miembro desde 2024</p>
-
-                        <button style={{
-                            width: '100%',
-                            padding: '0.5rem 1rem',
-                            backgroundColor: 'var(--color-bg)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: '0.75rem',
-                            fontSize: '0.875rem',
-                            fontWeight: 600,
-                            color: 'var(--color-text-main)',
-                            cursor: 'pointer',
-                            maxWidth: '200px'
-                        }}>
-                            Editar Datos
-                        </button>
+                        {!isEditing ? (
+                            <>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 0.25rem 0' }}>{optimisticName || userData?.firstName} {optimisticLastName || userData?.lastName}</h2>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', margin: '0 0 1rem 0' }}>Miembro desde {memberSinceYear}</p>
+                                <button
+                                    onClick={() => {
+                                        setEditName(userData?.firstName || '');
+                                        setEditLastName(userData?.lastName || '');
+                                        setIsEditing(true);
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem 1rem',
+                                        backgroundColor: 'var(--color-bg)',
+                                        border: '1px solid var(--color-border)',
+                                        borderRadius: '0.75rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        color: 'var(--color-text-main)',
+                                        cursor: 'pointer',
+                                        maxWidth: '200px'
+                                    }}>
+                                    Editar Datos
+                                </button>
+                            </>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '240px', margin: '0 auto' }}>
+                                <input
+                                    type="text"
+                                    value={editName}
+                                    onChange={(e) => setEditName(e.target.value)}
+                                    placeholder="Nombre"
+                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', color: 'var(--color-text-main)' }}
+                                />
+                                <input
+                                    type="text"
+                                    value={editLastName}
+                                    onChange={(e) => setEditLastName(e.target.value)}
+                                    placeholder="Apellido"
+                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', color: 'var(--color-text-main)' }}
+                                />
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button onClick={() => setIsEditing(false)} style={{ flex: 1, padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text-muted)' }}>Cancelar</button>
+                                    <button onClick={handleUpdateProfile} style={{ flex: 1, padding: '0.5rem', borderRadius: '0.5rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none' }}>Guardar</button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </section>
 
@@ -180,7 +359,7 @@ export const PerfilView: React.FC = () => {
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
                                 <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>Próxima renovación</span>
-                                <span style={{ fontWeight: 500 }}>15 Nov 2024</span>
+                                <span style={{ fontWeight: 500 }}>{renewalDate}</span>
                             </div>
                         </div>
                     </div>
@@ -196,7 +375,7 @@ export const PerfilView: React.FC = () => {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {history.map((item, index) => (
+                        {displayHistory.map((item, index) => (
                             <div key={index} style={{
                                 backgroundColor: 'var(--color-surface)',
                                 padding: '1rem',
@@ -227,24 +406,26 @@ export const PerfilView: React.FC = () => {
                         ))}
                     </div>
 
-                    <button style={{
-                        width: '100%',
-                        marginTop: '1rem',
-                        padding: '0.75rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.25rem',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        color: 'var(--color-text-muted)',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        transition: 'color 0.2s'
-                    }}>
-                        Ver todo el historial
-                        <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>expand_more</span>
+                    <button
+                        onClick={() => setShowAllHistory(!showAllHistory)}
+                        style={{
+                            width: '100%',
+                            marginTop: '1rem',
+                            padding: '0.75rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.25rem',
+                            fontSize: '0.875rem',
+                            fontWeight: 600,
+                            color: 'var(--color-text-muted)',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            transition: 'color 0.2s'
+                        }}>
+                        {showAllHistory ? 'Ver menos' : 'Ver todo el historial'}
+                        <span className="material-icons-round" style={{ fontSize: '1.25rem', transform: showAllHistory ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>expand_more</span>
                     </button>
                 </section>
 

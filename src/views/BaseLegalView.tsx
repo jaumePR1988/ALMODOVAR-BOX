@@ -21,7 +21,9 @@ export const BaseLegalView: React.FC<BaseLegalViewProps> = ({ title, children })
             backgroundColor: 'var(--color-bg)',
             transition: 'background-color 0.3s ease',
             width: '100%',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            overflowY: 'auto',
+            overflowX: 'hidden'
         }}>
             {/* Theme Toggle */}
             <button
