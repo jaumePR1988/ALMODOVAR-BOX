@@ -74,6 +74,9 @@ body {
   width: 100vw;
   display: flex;
   justify-content: center;
+  overscroll-behavior-y: none;
+  /* Prevent elastic bouncing */
+  touch-action: pan-x pan-y;
 }
 
 /* Utilities */
@@ -91,8 +94,7 @@ body {
 }
 
 /* Layout Classes */
-.app-container,
-.login-page {
+.app-container {
   display: flex;
   flex-direction: column;
   height: 100dvh;
@@ -102,6 +104,29 @@ body {
   box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
   position: relative;
   overflow: hidden;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  /* PREVENT OVERFLOW */
+  overflow-x: hidden;
+}
+
+/* Ensure no child can break the bank */
+.app-container>* {
+  max-width: 100%;
+}
+
+.login-page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--color-bg);
+  box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow-y: auto;
+  /* Enable vertical scrolling */
+  overflow-x: hidden;
 }
 
 .scroll-container {

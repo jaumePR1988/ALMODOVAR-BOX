@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext';
 
 interface NotificationsSettingsViewProps {
     onBack: () => void;
 }
 
 export const NotificationsSettingsView: React.FC<NotificationsSettingsViewProps> = ({ onBack }) => {
-    const { userData } = useAuth();
+    // const { userData } = useAuth(); // Removed unused variable causing build error
     // Emulated state for toggles (visual only for now as emulated backend)
     const [settings, setSettings] = useState({
         bookingReminders: true,

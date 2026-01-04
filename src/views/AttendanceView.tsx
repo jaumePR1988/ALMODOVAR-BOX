@@ -198,7 +198,7 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({ classData, onBac
                                     {attendee.image ? (
                                         <img src={attendee.image} alt={attendee.name} style={{
                                             height: '2.5rem', width: '2.5rem', borderRadius: '50%', objectFit: 'cover',
-                                            border: attendee.checked ? '2px solid #22c55e' : 'none'
+                                            // border: attendee.checked ? '2px solid #22c55e' : 'none'
                                         }} />
                                     ) : (
                                         <div style={{
@@ -229,7 +229,7 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({ classData, onBac
                             </div>
 
                             <button style={{
-                                height: '2rem', width: '2rem', borderRadius: '50%', border: 'none',
+                                height: '2rem', width: '2rem', borderRadius: '50%',
                                 backgroundColor: attendee.checked ? '#dcfce7' : (attendee.status === 'cancelled' ? 'rgba(239, 68, 68, 0.1)' : 'transparent'),
                                 color: attendee.checked ? '#16a34a' : (attendee.status === 'cancelled' ? '#ef4444' : 'transparent'),
                                 border: !attendee.checked && attendee.status !== 'cancelled' ? '2px solid var(--color-border)' : 'none',

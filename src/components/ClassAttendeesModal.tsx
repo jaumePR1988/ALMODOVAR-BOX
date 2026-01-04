@@ -106,7 +106,7 @@ export const ClassAttendeesModal: React.FC<ClassAttendeesModalProps> = ({ onClos
                 {/* List Content - Fixed Min Height to prevent shrinking */}
                 <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem', minHeight: '50vh' }} className="hide-scrollbar">
                     {activeTab === 'attendees' ? (
-                        attendees.map((user, idx) => (
+                        attendees.map((user) => (
                             <div key={user.id} style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -129,7 +129,7 @@ export const ClassAttendeesModal: React.FC<ClassAttendeesModalProps> = ({ onClos
                             </div>
                         ))
                     ) : (
-                        waitlist.map((user, idx) => (
+                        waitlist.map((user) => (
                             <div key={user.id} style={{
                                 display: 'flex',
                                 alignItems: 'center',

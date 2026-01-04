@@ -8,7 +8,7 @@ interface ProfileSettingsViewProps {
 }
 
 export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({ onBack, onNavigate }) => {
-    const { userData, user, logout } = useAuth();
+    const { userData, logout } = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {

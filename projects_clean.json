@@ -1,0 +1,39 @@
+﻿{
+  "status": "success",
+  "result": [
+    {
+      "projectId": "namaste-yoga-jpre",
+      "projectNumber": "741388856218",
+      "displayName": "Namaste Yoga App",
+      "name": "projects/namaste-yoga-jpre",
+      "resources": {
+        "hostingSite": "namaste-yoga-jpre"
+      },
+      "state": "ACTIVE",
+      "etag": "1_2791f5fb-8769-4d8b-8377-440c9f08fce3"
+    },
+    {
+      "projectId": "proneomanager",
+      "projectNumber": "1039439049102",
+      "displayName": "ProneoManager",
+      "name": "projects/proneomanager",
+      "resources": {
+        "hostingSite": "proneomanager"
+      },
+      "state": "ACTIVE",
+      "etag": "1_af23da2d-8d9b-4e63-9f61-13c7e3dcd314"
+    },
+    {
+      "projectId": "shaleta-yoga",
+      "projectNumber": "638872567752",
+      "displayName": "Shaleta Yoga",
+      "name": "projects/shaleta-yoga",
+      "resources": {
+        "hostingSite": "shaleta-yoga"
+      },
+      "state": "ACTIVE",
+      "etag": "1_4de99417-7950-4d35-ba54-1573454e95ed"
+    }
+  ]
+}
+

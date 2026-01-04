@@ -20,8 +20,8 @@ export const CommunityChatView: React.FC<{ onBack: () => void; forcedGroup?: str
     // Use forcedGroup if provided (for coaches), otherwise fallback to user membership
     const userGroup = forcedGroup || (userData?.membership === 'box' ? 'ALMODOVAR BOX' : 'ALMODOVAR FIT');
     // Determine color based on group name if forced, or membership
-    const isBox = userGroup.includes('BOX') || userData?.membership === 'box';
-    const groupColor = isBox ? 'var(--color-text-main)' : 'var(--color-primary)';
+    // const isBox = userGroup.includes('BOX') || userData?.membership === 'box';
+    // const groupColor = isBox ? 'var(--color-text-main)' : 'var(--color-primary)';
 
     useEffect(() => {
         // Load mock messages initially

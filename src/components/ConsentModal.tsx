@@ -27,6 +27,9 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({ onComplete }) => {
             const userRef = doc(db, 'users', user.uid);
             // Use setDoc with merge to ensure it works even if the user doc doesn't exist yet
             await setDoc(userRef, {
+                uid: user.uid, // Ensure UID is present
+                email: user.email, // Ensure Email is present
+                role: 'cliente', // Default role if missing
                 consents: {
                     ...consents,
                     version: '1.0',

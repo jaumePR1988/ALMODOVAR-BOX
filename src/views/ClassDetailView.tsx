@@ -18,6 +18,8 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
 
     // Check if user is already booked (Status check)
     const isAttended = classData.status === 'attended';
+    const isCancelled = classData.status === 'cancelled';
+    const isBooked = classData.status === 'upcoming' || isAttended;
 
     const [showAttendees, setShowAttendees] = useState(false);
     const [showWODReport, setShowWODReport] = useState(false);

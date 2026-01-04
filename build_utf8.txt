@@ -1,0 +1,21 @@
+﻿
+> almodovarbox@0.0.0 build
+> tsc -b && vite build
+
+src/components/ClassAttendeesModal.tsx(109,46): error TS6133: 'idx' is declared but its value is never read.
+src/components/ClassAttendeesModal.tsx(132,45): error TS6133: 'idx' is declared but its value is never read.
+src/views/AttendanceView.tsx(235,33): error TS1117: An object literal cannot have multiple properties with the same name.
+src/views/ClassDetailView.tsx(268,98): error TS2304: Cannot find name 'isBooked'.
+src/views/ClassDetailView.tsx(270,30): error TS2304: Cannot find name 'isBooked'.
+src/views/ClassDetailView.tsx(274,22): error TS2304: Cannot find name 'isBooked'.
+src/views/ClassDetailView.tsx(277,39): error TS2304: Cannot find name 'isCancelled'.
+src/views/ClassDetailView.tsx(280,50): error TS2304: Cannot find name 'isCancelled'.
+src/views/ClassDetailView.tsx(282,40): error TS2304: Cannot find name 'isCancelled'.
+src/views/ClassDetailView.tsx(291,41): error TS2304: Cannot find name 'isCancelled'.
+src/views/ClassDetailView.tsx(292,43): error TS2304: Cannot find name 'isCancelled'.
+src/views/ClassDetailView.tsx(295,34): error TS2304: Cannot find name 'isCancelled'.
+src/views/ClassDetailView.tsx(297,30): error TS2304: Cannot find name 'isCancelled'.
+src/views/ClientDashboardView.tsx(327,9): error TS6133: 'membership' is declared but its value is never read.
+src/views/CommunityChatView.tsx(24,11): error TS6133: 'groupColor' is declared but its value is never read.
+src/views/NotificationsSettingsView.tsx(9,11): error TS6133: 'userData' is declared but its value is never read.
+src/views/ProfileSettingsView.tsx(11,23): error TS6133: 'user' is declared but its value is never read.

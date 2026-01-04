@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { auth, db } from '../firebase';
@@ -68,7 +69,14 @@ export const RegisterView: React.FC = () => {
                     city: formData.city
                 },
                 role: 'cliente',
-                approved: false, // Por defecto requiere autorización
+                approved: true, // TEMPORARY: Validation disabled
+                consents: {
+                    terms: true, // User accepted via checkbox
+                    imageRights: false, // Default to false, will be asked if needed or we can ask in form
+                    marketing: false,
+                    version: '1.0',
+                    timestamp: new Date().toISOString()
+                },
                 createdAt: serverTimestamp()
             });
 
@@ -154,16 +162,14 @@ export const RegisterView: React.FC = () => {
 
     return (
         <div className="login-page" style={{
-            minHeight: '100dvh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem',
-            backgroundColor: 'var(--color-bg)',
+            padding: '1.5rem',
+            paddingTop: '2rem', /* Reduced top padding as wrapper handles centering */
+            paddingBottom: '2rem',
             transition: 'background-color 0.3s ease',
-            width: '100%',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            display: 'flex',             /* Enable flexbox on container */
+            flexDirection: 'column',
+            minHeight: '100dvh'          /* Ensure container is full height */
         }}>
             {/* Theme Toggle */}
             <button
@@ -190,292 +196,299 @@ export const RegisterView: React.FC = () => {
                 {theme === 'dark' ? '☀️' : '🌙'}
             </button>
 
-            {/* Header */}
-            <div className="animate-fade-in-down" style={{
-                width: '100%',
-                maxWidth: '448px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                marginBottom: '1.5rem',
-                marginTop: '1.5rem'
-            }}>
-                <div style={{
-                    width: '5rem',
-                    height: '5rem',
-                    marginBottom: '0.75rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
-                    <img
-                        src="/src/assets/logo.png"
-                        alt="Logo"
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                    />
-                </div>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text-main)', textAlign: 'center', letterSpacing: '-0.025em' }}>
-                    Almodovar <span style={{ color: 'var(--color-primary)' }}>Group</span>
-                </h1>
-                <p style={{ marginTop: '0.25rem', color: 'var(--color-text-muted)', fontSize: '0.75rem', fontWeight: 500 }}>
-                    Transforma tu vida
-                </p>
-            </div>
-
-            {/* Form Card */}
+            {/* Content Wrapper for Safe Centering */}
             <div style={{
                 width: '100%',
                 maxWidth: '448px',
-                backgroundColor: 'var(--color-surface)',
-                borderRadius: 'var(--radius-2xl)',
-                boxShadow: 'var(--shadow-soft)',
-                padding: '1.25rem',
-                marginBottom: '1rem'
+                margin: 'auto',          /* This does the magic: Centers vertically and horizontally safely */
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
             }}>
-                {/* Tabs */}
-                <div className="badge-tab">
-                    <button type="button" className="inactive" onClick={() => navigate('/login')}>
-                        Iniciar Sesión
-                    </button>
-                    <button type="button" className="active">
-                        Registrarse
-                    </button>
-                </div>
 
-                {error && (
+                {/* Header */}
+                <div className="animate-fade-in-down" style={{
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    marginBottom: '1.5rem',
+                    /* marginTop: 'auto' removed */
+                }}>
                     <div style={{
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        color: '#ef4444',
-                        padding: '0.75rem',
-                        borderRadius: 'var(--radius-lg)',
-                        marginBottom: '1rem',
-                        fontSize: '0.875rem',
-                        textAlign: 'center',
-                        border: '1px solid rgba(239, 68, 68, 0.2)'
+                        width: '5rem',
+                        height: '5rem',
+                        marginBottom: '0.75rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                     }}>
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div className="grid-2">
-                        <div style={{ position: 'relative' }}>
-                            <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>person</span>
-                            <input
-                                id="firstName"
-                                className="ios-input"
-                                placeholder="Nombre"
-                                required
-                                type="text"
-                                style={{ paddingLeft: '2.25rem' }}
-                                value={formData.firstName}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-                        <input
-                            id="lastName"
-                            className="ios-input"
-                            placeholder="Apellidos"
-                            required
-                            type="text"
-                            style={{ paddingLeft: '1rem' }}
-                            value={formData.lastName}
-                            onChange={handleInputChange}
+                        <img
+                            src={logo}
+                            alt="Logo"
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                         />
                     </div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text-main)', textAlign: 'center', letterSpacing: '-0.025em' }}>
+                        Almodovar <span style={{ color: 'var(--color-primary)' }}>Group</span>
+                    </h1>
+                    <p style={{ marginTop: '0.25rem', color: 'var(--color-text-muted)', fontSize: '0.75rem', fontWeight: 500 }}>
+                        Transforma tu vida
+                    </p>
+                </div>
 
-                    <div className="grid-2">
-                        <div style={{ position: 'relative' }}>
-                            <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>phone</span>
-                            <input
-                                id="phone"
-                                className="ios-input"
-                                placeholder="Teléfono"
-                                required
-                                type="tel"
-                                style={{ paddingLeft: '2.25rem' }}
-                                value={formData.phone}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-                        <div style={{ position: 'relative' }}>
-                            <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>cake</span>
-                            <input
-                                id="birthDate"
-                                className="ios-input"
-                                type="date"
-                                placeholder="Fecha de Nacimiento"
-                                required
-                                style={{ paddingLeft: '2.25rem' }}
-                                value={formData.birthDate}
-                                onChange={handleInputChange}
-                            />
-                        </div>
+                {/* Form Card */}
+                <div style={{
+                    width: '100%',
+                    backgroundColor: 'var(--color-surface)',
+                    borderRadius: 'var(--radius-2xl)',
+                    boxShadow: 'var(--shadow-soft)',
+                    padding: '1.25rem',
+                    marginBottom: '1rem'
+                }}>
+                    {/* Tabs */}
+                    <div className="badge-tab">
+                        <button type="button" className="inactive" onClick={() => navigate('/login')}>
+                            Iniciar Sesión
+                        </button>
+                        <button type="button" className="active">
+                            Registrarse
+                        </button>
                     </div>
 
-                    <div style={{ marginTop: '0.25rem' }}>
-                        <span className="form-section-title">Dirección completa *</span>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                    {error && (
+                        <div style={{
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            color: '#ef4444',
+                            padding: '0.75rem',
+                            borderRadius: 'var(--radius-lg)',
+                            marginBottom: '1rem',
+                            fontSize: '0.875rem',
+                            textAlign: 'center',
+                            border: '1px solid rgba(239, 68, 68, 0.2)'
+                        }}>
+                            {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div className="grid-2">
+                            <div style={{ position: 'relative' }}>
+                                <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>person</span>
+                                <input
+                                    id="firstName"
+                                    className="ios-input"
+                                    placeholder="Nombre"
+                                    required
+                                    type="text"
+                                    style={{ paddingLeft: '2.25rem' }}
+                                    value={formData.firstName}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
                             <input
-                                id="street"
+                                id="lastName"
                                 className="ios-input"
-                                placeholder="Calle / Avenida"
+                                placeholder="Apellidos"
                                 required
                                 type="text"
                                 style={{ paddingLeft: '1rem' }}
-                                value={formData.street}
+                                value={formData.lastName}
                                 onChange={handleInputChange}
                             />
-                            <div className="grid-3">
+                        </div>
+
+                        <div className="grid-2">
+                            <div style={{ position: 'relative' }}>
+                                <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>phone</span>
                                 <input
-                                    id="number"
+                                    id="phone"
                                     className="ios-input"
-                                    placeholder="Nº"
+                                    placeholder="Teléfono"
+                                    required
+                                    type="tel"
+                                    style={{ paddingLeft: '2.25rem' }}
+                                    value={formData.phone}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+                            <div style={{ position: 'relative' }}>
+                                <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>cake</span>
+                                <input
+                                    id="birthDate"
+                                    className="ios-input"
+                                    type="date"
+                                    placeholder="Fecha de Nacimiento"
+                                    required
+                                    style={{ paddingLeft: '2.25rem' }}
+                                    value={formData.birthDate}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '0.25rem' }}>
+                            <span className="form-section-title">Dirección completa *</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                                <input
+                                    id="street"
+                                    className="ios-input"
+                                    placeholder="Calle / Avenida"
                                     required
                                     type="text"
                                     style={{ paddingLeft: '1rem' }}
-                                    value={formData.number}
+                                    value={formData.street}
                                     onChange={handleInputChange}
                                 />
-                                <div style={{ gridColumn: 'span 2' }}>
+                                <div className="grid-3">
                                     <input
-                                        id="zip"
+                                        id="number"
                                         className="ios-input"
-                                        placeholder="Código Postal"
+                                        placeholder="Nº"
                                         required
                                         type="text"
                                         style={{ paddingLeft: '1rem' }}
-                                        value={formData.zip}
+                                        value={formData.number}
                                         onChange={handleInputChange}
                                     />
+                                    <div style={{ gridColumn: 'span 2' }}>
+                                        <input
+                                            id="zip"
+                                            className="ios-input"
+                                            placeholder="Código Postal"
+                                            required
+                                            type="text"
+                                            style={{ paddingLeft: '1rem' }}
+                                            value={formData.zip}
+                                            onChange={handleInputChange}
+                                        />
+                                    </div>
                                 </div>
+                                <input
+                                    id="city"
+                                    className="ios-input"
+                                    placeholder="Ciudad"
+                                    required
+                                    type="text"
+                                    style={{ paddingLeft: '1rem' }}
+                                    value={formData.city}
+                                    onChange={handleInputChange}
+                                />
                             </div>
-                            <input
-                                id="city"
-                                className="ios-input"
-                                placeholder="Ciudad"
-                                required
-                                type="text"
-                                style={{ paddingLeft: '1rem' }}
-                                value={formData.city}
-                                onChange={handleInputChange}
-                            />
                         </div>
-                    </div>
 
-                    <div style={{ position: 'relative' }}>
-                        <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>email</span>
-                        <input
-                            id="email"
-                            className="ios-input"
-                            placeholder="Correo Electrónico"
-                            required
-                            type="email"
-                            style={{ paddingLeft: '2.25rem' }}
-                            value={formData.email}
-                            onChange={handleInputChange}
-                        />
-                    </div>
-
-                    <div className="grid-2" style={{ gap: '0.75rem' }}>
                         <div style={{ position: 'relative' }}>
-                            <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>lock</span>
+                            <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>email</span>
                             <input
-                                id="password"
+                                id="email"
                                 className="ios-input"
-                                placeholder="Contraseña"
+                                placeholder="Correo Electrónico"
                                 required
-                                type={showPassword ? 'text' : 'password'}
+                                type="email"
                                 style={{ paddingLeft: '2.25rem' }}
-                                value={formData.password}
-                                onChange={handleInputChange}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                style={{
-                                    position: 'absolute',
-                                    right: '0.75rem',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                    color: '#9ca3af',
-                                    backgroundColor: 'transparent',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center'
-                                }}
-                            >
-                                <span className="material-icons-outlined" style={{ fontSize: '1.1rem' }}>
-                                    {showPassword ? 'visibility' : 'visibility_off'}
-                                </span>
-                            </button>
-                        </div>
-                        <div style={{ position: 'relative' }}>
-                            <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>lock_reset</span>
-                            <input
-                                id="confirmPassword"
-                                className="ios-input"
-                                placeholder="Confirmar"
-                                required
-                                type={showPassword ? 'text' : 'password'}
-                                style={{ paddingLeft: '2.25rem' }}
-                                value={formData.confirmPassword}
+                                value={formData.email}
                                 onChange={handleInputChange}
                             />
                         </div>
-                    </div>
 
-                    <label className="checkbox-container">
-                        <input type="checkbox" required />
-                        <span>
-                            Acepto los <button type="button" onClick={() => navigate('/terms')} style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', font: 'inherit' }}>términos</button> y la <button type="button" onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', font: 'inherit' }}>política de privacidad</button>
-                        </span>
-                    </label>
+                        <div className="grid-2" style={{ gap: '0.75rem' }}>
+                            <div style={{ position: 'relative' }}>
+                                <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>lock</span>
+                                <input
+                                    id="password"
+                                    className="ios-input"
+                                    placeholder="Contraseña"
+                                    required
+                                    type={showPassword ? 'text' : 'password'}
+                                    style={{ paddingLeft: '2.25rem' }}
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '0.75rem',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        color: '#9ca3af',
+                                        backgroundColor: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <span className="material-icons-outlined" style={{ fontSize: '1.1rem' }}>
+                                        {showPassword ? 'visibility' : 'visibility_off'}
+                                    </span>
+                                </button>
+                            </div>
+                            <div style={{ position: 'relative' }}>
+                                <span className="material-icons-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '1.1rem' }}>lock_reset</span>
+                                <input
+                                    id="confirmPassword"
+                                    className="ios-input"
+                                    placeholder="Confirmar"
+                                    required
+                                    type={showPassword ? 'text' : 'password'}
+                                    style={{ paddingLeft: '2.25rem' }}
+                                    value={formData.confirmPassword}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+                        </div>
 
-                    <button
-                        type="submit"
-                        className="btn-primary"
-                        disabled={loading}
-                        style={{
-                            marginTop: '0.5rem',
-                            padding: '0.875rem',
-                            opacity: loading ? 0.7 : 1,
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem'
-                        }}
-                    >
-                        {loading ? (
-                            <>
-                                <span className="material-icons-outlined animate-spin" style={{ fontSize: '1.25rem' }}>sync</span>
-                                CREANDO CUENTA...
-                            </>
-                        ) : 'CREAR CUENTA'}
-                    </button>
-                </form>
+                        <label className="checkbox-container">
+                            <input type="checkbox" required />
+                            <span>
+                                Acepto los <button type="button" onClick={() => navigate('/terms')} style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', font: 'inherit' }}>términos</button> y la <button type="button" onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', font: 'inherit' }}>política de privacidad</button>
+                            </span>
+                        </label>
+
+                        <button
+                            type="submit"
+                            className="btn-primary"
+                            disabled={loading}
+                            style={{
+                                marginTop: '0.5rem',
+                                padding: '0.875rem',
+                                opacity: loading ? 0.7 : 1,
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem'
+                            }}
+                        >
+                            {loading ? (
+                                <>
+                                    <span className="material-icons-outlined animate-spin" style={{ fontSize: '1.25rem' }}>sync</span>
+                                    CREANDO CUENTA...
+                                </>
+                            ) : 'CREAR CUENTA'}
+                        </button>
+                    </form>
+                </div>
+
+                <div style={{
+                    display: 'flex',
+                    gap: '1.5rem',
+                    fontSize: '0.75rem',
+                    color: 'var(--color-text-muted)',
+                    marginTop: '0.5rem',
+                    alignItems: 'center'
+                }}>
+                    <button onClick={() => navigate('/terms')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: 'inherit', minHeight: 'auto' }}>Términos y Privacidad</button>
+                    <span style={{ opacity: 0.3 }}>|</span>
+                    <button onClick={() => navigate('/help')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: 'inherit', minHeight: 'auto' }}>Ayuda</button>
+                </div>
+
+                <p style={{ fontSize: '0.6rem', color: 'var(--color-text-muted)', opacity: 0.6, paddingTop: '1rem', paddingBottom: '2rem' }}>
+                    © 2025 Almodovar Group Fitness
+                </p>
             </div>
-
-            <div style={{
-                display: 'flex',
-                gap: '1.5rem',
-                fontSize: '0.75rem',
-                color: 'var(--color-text-muted)',
-                marginTop: '1.5rem',
-                alignItems: 'center'
-            }}>
-                <button onClick={() => navigate('/terms')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: 'inherit', minHeight: 'auto' }}>Términos</button>
-                <span style={{ opacity: 0.3 }}>|</span>
-                <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: 'inherit', minHeight: 'auto' }}>Privacidad</button>
-                <span style={{ opacity: 0.3 }}>|</span>
-                <button onClick={() => navigate('/help')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: 'inherit', minHeight: 'auto' }}>Ayuda</button>
-            </div>
-
-            <p style={{ fontSize: '0.6rem', color: 'var(--color-text-muted)', opacity: 0.6, paddingTop: '1.5rem', paddingBottom: '1rem' }}>
-                © 2025 Almodovar Group Fitness
-            </p>
         </div>
     );
 };

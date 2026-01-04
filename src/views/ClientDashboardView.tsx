@@ -301,7 +301,9 @@ export const ClientDashboardView: React.FC = () => {
             )}
 
             <div className={`scroll-container hide-scrollbar ${showConsentModal ? 'blur-sm pointer-events-none' : ''}`}>
-                {renderContent()}
+                <div className="animate-fade-in-up" style={{ width: '100%', minHeight: '100%' }}>
+                    {renderContent()}
+                </div>
             </div>
         </MainLayout>
     );
@@ -324,7 +326,7 @@ const InicioSection: React.FC<{
     userClasses: any[],
     availableMonthly: number,
     remainingWeekly: number
-}> = ({ membership, user, userData, onSelectClass, startRatingFlow, setStartRatingFlow, lastClassRated, setLastClassRated, userClasses, availableMonthly, remainingWeekly }) => {
+}> = ({ user, userData, onSelectClass, startRatingFlow, setStartRatingFlow, lastClassRated, setLastClassRated, userClasses, availableMonthly, remainingWeekly }) => {
 
     const classToRate = userClasses.find(c => c.status === 'attended' && !lastClassRated);
 

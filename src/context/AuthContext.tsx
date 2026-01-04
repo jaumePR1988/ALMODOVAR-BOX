@@ -35,20 +35,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser) {
-                // Important: Set loading to true immediately to prevent premature routing
-                // while we fetch the user's data from Firestore.
-                setLoading(true);
                 setUser(firebaseUser);
 
-                // Escuchar cambios en el documento del usuario en tiempo real
-                unsubscribeDoc = onSnapshot(doc(db, 'users', firebaseUser.uid), (userDoc) => {
-                    const email = firebaseUser.email || '';
+                // 1. Optimistic Cache Load
+                const cachedData = localStorage.getItem(`almodovar_user_data_${firebaseUser.uid}`);
+                if (cachedData) {
+                    try {
+                        const parsed = JSON.parse(cachedData);
+                        setUserData(parsed);
+                        if (firebaseUser.email === 'admin@almodovarbox.com') {
+                            setRole('admin');
+                            setIsApproved(true);
+                        } else if (firebaseUser.email === 'coach@almodovarbox.com') {
+                            setRole('coach');
+                            setIsApproved(true);
+                        } else {
+                            setRole(parsed.role as UserRole);
+                            // TEMPORARY: Validation disabled (Force true even if cache says false)
+                            setIsApproved(true);
+                        }
+                        setLoading(false); // Unblock UI immediately
+                    } catch (e) {
+                        console.error("Error parsing cached user data", e);
+                    }
+                } else {
+                    setLoading(true); // Only block if no cache exists
+                }
 
+                // 2. Fallback timeout (safety net)
+                const fallbackTimer = setTimeout(() => {
+                    setLoading((prev) => {
+                        if (prev) {
+                            console.warn("Firestore timeout - unblocking UI with default state");
+                            return false;
+                        }
+                        return prev;
+                    });
+                }, 5000); // 5s max wait if no cache
+
+                // 3. Real-time Listener (Background Update)
+                unsubscribeDoc = onSnapshot(doc(db, 'users', firebaseUser.uid), (userDoc) => {
+                    clearTimeout(fallbackTimer); // Clear timeout on success
+
+                    const email = firebaseUser.email || '';
                     if (userDoc.exists()) {
                         const data = userDoc.data();
                         setUserData(data);
 
-                        // Bypass de desarrollo para visualización rápida
+                        // Update cache
+                        localStorage.setItem(`almodovar_user_data_${firebaseUser.uid}`, JSON.stringify(data));
+
+                        // ... (Role logic same as before)
                         if (email === 'admin@almodovarbox.com') {
                             setRole('admin');
                             setIsApproved(true);
@@ -60,30 +97,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             setIsApproved(true);
                         } else {
                             setRole(data.role as UserRole);
-                            setIsApproved(data.approved === true);
+                            // TEMPORARY: Validation disabled
+                            setIsApproved(true); // Was: setIsApproved(data.approved === true);
                         }
                     } else {
-                        // Usuario recién creado o sin documento
+                        // ... (New user logic)
                         if (email === 'admin@almodovarbox.com') {
-                            setRole('admin');
-                            setIsApproved(true);
+                            setRole('admin'); setIsApproved(true);
                         } else if (email === 'coach@almodovarbox.com') {
-                            setRole('coach');
-                            setIsApproved(true);
+                            setRole('coach'); setIsApproved(true);
                         } else if (email === 'usuario@almodovarbox.com') {
-                            setRole('cliente');
-                            setIsApproved(true);
+                            setRole('cliente'); setIsApproved(true);
                         } else {
-                            // Default for new users
                             setRole('cliente');
-                            setIsApproved(false);
+                            // TEMPORARY: Validation disabled
+                            setIsApproved(true); // Was: setIsApproved(false);
                         }
                     }
                     setLoading(false);
                 }, (error) => {
                     console.error("Error fetching user doc:", error);
-                    setRole('cliente');
-                    setIsApproved(false);
+                    clearTimeout(fallbackTimer);
+                    // If we had cache, we are already good. If not, we unblock with defaults.
                     setLoading(false);
                 });
             } else {
@@ -104,6 +139,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const logout = async () => {
         await auth.signOut();
+        // Clear specific user data, or all app data? 
+        // Safer to keep cache for next login unless explicitly clearing on debug.
+        // But for security/privacy on shared devices, maybe clear.
+        // Let's clear current user cache key if we had it in state, but 
+        // user state is nullified instantly.
+        // Accessing user.uid here might be racy if state updates fast.
+        // A simple approach: keep cache. It's standard for mobile-like apps. 
+        // If we strictly want to clear: 
+        if (user) {
+            localStorage.removeItem(`almodovar_user_data_${user.uid}`);
+        }
+
         setUser(null);
         setUserData(null);
         setRole(null);

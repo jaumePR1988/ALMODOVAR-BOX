@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import logo from '../assets/logo.png';
 
 const BACKGROUND_IMAGE = "https://lh3.googleusercontent.com/aida-public/AB6AXuAdq0F6ORP3wcsQtUD-WVIZvVjbFfAITVLWIx6qLMRiUjN4wq0MNDCPAaDgHSLW_fT6t_j3Hqdvrr0bu7zDl7bQ4qPNdp_E2_K5yySDoivzUa2B0rfZmqGK3rUNDiq0nnIzlrcM5YCY0jY6BIArwuOZrSzCnVAgZyVnI-rVFHEWVqsA-zb_jAccmhW2G72rI-rNDdsMl26ldAcH3PRLohgjv9myOFiRhLWXJdTzrM14HmwweaHtCcIf_Qa8XGlgfGVC_cDYhQqI1dE";
 
@@ -9,7 +10,7 @@ export const SplashScreen: React.FC<{ onComplete: () => void, loading?: boolean 
     useEffect(() => {
         const timer = setTimeout(() => {
             setTimerDone(true);
-        }, 2200);
+        }, 1200);
         return () => clearTimeout(timer);
     }, []);
 
@@ -82,7 +83,7 @@ export const SplashScreen: React.FC<{ onComplete: () => void, loading?: boolean 
                             zIndex: -1
                         }}></div>
                         <img
-                            src="/src/assets/logo.png"
+                            src={logo}
                             alt="ALMODOVARBOX Logo"
                             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                         />

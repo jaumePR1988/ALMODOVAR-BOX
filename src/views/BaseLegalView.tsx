@@ -1,4 +1,5 @@
 import React from 'react';
+import logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 
@@ -13,17 +14,10 @@ export const BaseLegalView: React.FC<BaseLegalViewProps> = ({ title, children })
 
     return (
         <div className="login-page" style={{
-            minHeight: '100dvh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
             padding: '1.5rem',
-            backgroundColor: 'var(--color-bg)',
+            paddingTop: '5rem', /* Extra space for fixed back button */
             transition: 'background-color 0.3s ease',
-            width: '100%',
-            boxSizing: 'border-box',
-            overflowY: 'auto',
-            overflowX: 'hidden'
+            boxSizing: 'border-box'
         }}>
             {/* Theme Toggle */}
             <button
@@ -94,7 +88,7 @@ export const BaseLegalView: React.FC<BaseLegalViewProps> = ({ title, children })
                     justifyContent: 'center'
                 }}>
                     <img
-                        src="/src/assets/logo.png"
+                        src={logo}
                         alt="Logo"
                         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     />

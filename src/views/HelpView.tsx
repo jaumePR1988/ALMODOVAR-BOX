@@ -14,14 +14,20 @@ export const HelpView: React.FC = () => {
             <br />
             <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: '1.5rem 0' }} />
             <h3 style={{ color: 'var(--color-primary)', fontSize: '1.1rem', marginBottom: '1rem' }}>Soporte Directo</h3>
-            <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span className="material-icons-outlined" style={{ fontSize: '1.2rem' }}>phone</span>
-                <strong>Teléfono / WhatsApp:</strong> 662 086 632
-            </p>
-            <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                <span className="material-icons-outlined" style={{ fontSize: '1.2rem' }}>email</span>
-                <strong>Email:</strong> almodovarbox@gmail.com
-            </p>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <span className="material-icons-outlined" style={{ fontSize: '1.2rem', color: 'var(--color-primary)', marginTop: '0.1rem' }}>phone</span>
+                <div>
+                    <strong>Teléfono / WhatsApp:</strong>
+                    <div style={{ whiteSpace: 'nowrap' }}>662 086 632</div>
+                </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <span className="material-icons-outlined" style={{ fontSize: '1.2rem', color: 'var(--color-primary)', marginTop: '0.1rem' }}>email</span>
+                <div style={{ overflowWrap: 'anywhere' }}>
+                    <strong>Email:</strong>
+                    <div>almodovarbox@gmail.com</div>
+                </div>
+            </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
                 Horario de atención: Lunes a Viernes de 09:00 a 21:00.
             </p>
