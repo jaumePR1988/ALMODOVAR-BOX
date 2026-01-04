@@ -331,7 +331,7 @@ const InicioSection: React.FC<{
     const classToRate = userClasses.find(c => c.status === 'attended' && !lastClassRated);
 
     return (
-        <div style={{ paddingTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div className="section-padding" style={{ paddingTop: '1.5rem', paddingLeft: '1.5rem', paddingRight: '1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {startRatingFlow && (
                 <RatingModal
                     className={classToRate?.title}
@@ -366,7 +366,7 @@ const InicioSection: React.FC<{
                 />
             )}
             {/* Stats Grid */}
-            <section className="section-padding" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="card-premium">
                     <span className="text-3xl font-bold" style={{ color: 'var(--color-primary)', display: 'block' }}>{availableMonthly}</span>
                     <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Clases disponibles al mes</span>
@@ -378,7 +378,7 @@ const InicioSection: React.FC<{
             </section>
 
             {/* Upcoming Classes List */}
-            <section className="section-padding">
+            <section>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
                     <h2 className="heading-section" style={{ margin: 0 }}>Tus últimas clases</h2>
                 </div>
@@ -438,7 +438,7 @@ const InicioSection: React.FC<{
             {/* Rating Card */}
             {
                 classToRate && (
-                    <section className="section-padding" style={{ marginBottom: '2rem' }}>
+                    <section style={{ marginBottom: '2rem' }}>
                         <div
                             onClick={() => setStartRatingFlow(true)}
                             style={{
