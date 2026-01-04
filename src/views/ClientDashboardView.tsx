@@ -15,7 +15,7 @@ export const ClientDashboardView: React.FC = () => {
     const { user, userData } = useAuth();
     const [activeTab, setActiveTab] = useState('inicio');
     const [selectedClass, setSelectedClass] = useState<any>(null);
-    const [bookingSuccess, setBookingSuccess] = useState<{ show: boolean, type: 'booking' | 'waitlist' }>({ show: false, type: 'booking' });
+    const [bookingSuccess, setBookingSuccess] = useState<{ show: boolean, type: 'booking' | 'waitlist' | 'error' }>({ show: false, type: 'booking' });
 
     const [startRatingFlow, setStartRatingFlow] = useState(false);
     const [lastClassRated, setLastClassRated] = useState(false);
@@ -82,6 +82,23 @@ export const ClientDashboardView: React.FC = () => {
 
     const handleBookClass = () => {
         if (!selectedClass) return;
+
+        // Validation: Max 2 Active Reservations
+        const activeReservations = userClasses.filter(c => c.status === 'upcoming').length;
+        if (activeReservations >= 2) {
+            setBookingSuccess({ show: true, type: 'error' });
+            return;
+        }
+
+        // Validation: Max 2 Classes Per Week (Strict Limit)
+        // Count ALL non-cancelled classes (Accomplished/Attended + Upcoming)
+        const totalWeekly = userClasses.filter(c => c.status === 'attended' || c.status === 'upcoming').length;
+
+        if (totalWeekly >= 2) {
+            setBookingSuccess({ show: true, type: 'error' });
+            return;
+        }
+
         const isFull = (selectedClass.enrolled ?? 8) >= (selectedClass.capacity ?? 10);
         setBookingSuccess({ show: true, type: isFull ? 'waitlist' : 'booking' });
 
@@ -144,9 +161,9 @@ export const ClientDashboardView: React.FC = () => {
     };
 
     // Weekly Calculation Logic (Lifted)
-    const weeklyLimit = userData?.membership === 'box' ? 2 : 3;
-    const attendedThisWeek = 1;
-    const remainingWeekly = weeklyLimit - attendedThisWeek;
+    const weeklyLimit = 2; // Strict limit as per user request
+    const totalWeekly = userClasses.filter(c => c.status === 'attended' || c.status === 'upcoming').length;
+    const remainingWeekly = Math.max(0, weeklyLimit - totalWeekly);
 
     const renderContent = () => {
         if (selectedClass) {
@@ -681,7 +698,7 @@ const ReservasSection: React.FC<{
                                         boxShadow: (!isBooked && canReserve && selectedGroup === 'fit') ? '0 4px 12px rgba(211,0,31,0.3)' : 'none'
                                     }}
                                 >
-                                    {passed ? 'Finalizado' : (isBooked ? 'Reservado' : (full ? 'Completo' : 'Reservar'))}
+                                    {passed ? 'Finalizado' : (isBooked ? 'Reservado' : (full ? 'Completo' : `${session.available} plazas`))}
                                 </button>
                             </div>
                         );

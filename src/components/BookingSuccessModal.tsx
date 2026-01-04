@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface BookingSuccessModalProps {
-    type: 'booking' | 'waitlist';
+    type: 'booking' | 'waitlist' | 'error';
     onClose: () => void;
 }
 
@@ -45,18 +45,18 @@ export const BookingSuccessModal: React.FC<BookingSuccessModalProps> = ({ type, 
                     width: '5rem',
                     height: '5rem',
                     borderRadius: '50%',
-                    backgroundColor: type === 'booking' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(249, 115, 22, 0.1)',
+                    backgroundColor: type === 'error' ? 'rgba(239, 68, 68, 0.1)' : (type === 'booking' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(249, 115, 22, 0.1)'),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    border: `2px solid ${type === 'booking' ? '#4ade80' : '#f97316'}`,
-                    boxShadow: `0 0 20px ${type === 'booking' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(249, 115, 22, 0.2)'}`
+                    border: `2px solid ${type === 'error' ? '#ef4444' : (type === 'booking' ? '#4ade80' : '#f97316')}`,
+                    boxShadow: `0 0 20px ${type === 'error' ? 'rgba(239, 68, 68, 0.2)' : (type === 'booking' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(249, 115, 22, 0.2)')}`
                 }}>
                     <span className="material-icons-round" style={{
                         fontSize: '3rem',
-                        color: type === 'booking' ? '#4ade80' : '#f97316'
+                        color: type === 'error' ? '#ef4444' : (type === 'booking' ? '#4ade80' : '#f97316')
                     }}>
-                        {type === 'booking' ? 'check' : 'hourglass_empty'}
+                        {type === 'error' ? 'block' : (type === 'booking' ? 'check' : 'hourglass_empty')}
                     </span>
                 </div>
 
@@ -69,39 +69,43 @@ export const BookingSuccessModal: React.FC<BookingSuccessModalProps> = ({ type, 
                         marginBottom: '0.5rem',
                         lineHeight: 1.2
                     }}>
-                        {type === 'booking' ? '¡Plaza Confirmada!' : '¡Estás en la Lista!'}
+                        {type === 'error' ? 'No puedes reservar' : (type === 'booking' ? '¡Plaza Confirmada!' : '¡Estás en la Lista!')}
                     </h3>
                     <p style={{
                         fontSize: '0.9375rem',
                         color: 'var(--color-text-muted)',
                         lineHeight: 1.5
                     }}>
-                        {type === 'booking'
-                            ? 'Todo listo. Prepara tus guantes y nos vemos en el club.'
-                            : 'Te avisaremos en cuanto se libere una plaza para ti.'}
+                        {type === 'error'
+                            ? 'Has alcanzado el límite de reservas activas o semanales.'
+                            : (type === 'booking'
+                                ? 'Todo listo. Prepara tus guantes y nos vemos en el club.'
+                                : 'Te avisaremos en cuanto se libere una plaza para ti.')}
                     </p>
                 </div>
 
-                {/* Credit Badge */}
-                <div style={{
-                    backgroundColor: 'var(--color-bg)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '0.75rem',
-                    padding: '0.75rem 1rem',
-                    width: '100%'
-                }}>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
-                        {type === 'booking' ? 'Crédito descontado' : 'Crédito retenido'}
-                    </p>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                        <span className="material-icons-round" style={{ fontSize: '1rem', color: type === 'booking' ? '#ef4444' : 'var(--color-text-muted)' }}>
-                            {type === 'booking' ? 'remove_circle_outline' : 'lock_open'}
-                        </span>
-                        <span style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text-main)' }}>
-                            {type === 'booking' ? '1 Crédito' : '0 Créditos'}
-                        </span>
+                {/* Credit Badge (Hidden for error) */}
+                {type !== 'error' && (
+                    <div style={{
+                        backgroundColor: 'var(--color-bg)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '0.75rem',
+                        padding: '0.75rem 1rem',
+                        width: '100%'
+                    }}>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+                            {type === 'booking' ? 'Crédito descontado' : 'Crédito retenido'}
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                            <span className="material-icons-round" style={{ fontSize: '1rem', color: type === 'booking' ? '#ef4444' : 'var(--color-text-muted)' }}>
+                                {type === 'booking' ? 'remove_circle_outline' : 'lock_open'}
+                            </span>
+                            <span style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text-main)' }}>
+                                {type === 'booking' ? '1 Crédito' : '0 Créditos'}
+                            </span>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Close Button */}
                 <button

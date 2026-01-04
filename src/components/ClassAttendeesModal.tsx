@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 
 interface ClassAttendeesModalProps {
     onClose: () => void;
@@ -30,11 +31,11 @@ export const ClassAttendeesModal: React.FC<ClassAttendeesModalProps> = ({ onClos
         plan: i % 3 === 0 ? 'FIT' : 'BOX'
     }));
 
-    return (
+    return ReactDOM.createPortal(
         <div style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 3000,
+            zIndex: 9999, // BOOSTED Z-INDEX
             display: 'flex',
             alignItems: 'flex-end',
             justifyContent: 'center',
@@ -46,14 +47,16 @@ export const ClassAttendeesModal: React.FC<ClassAttendeesModalProps> = ({ onClos
                 style={{
                     width: '100%',
                     maxWidth: '480px',
-                    backgroundColor: 'var(--color-bg)', // THEMED
+                    backgroundColor: 'var(--color-bg)',
                     borderTopLeftRadius: '1.5rem',
                     borderTopRightRadius: '1.5rem',
                     padding: '1.5rem',
-                    maxHeight: '80vh',
+                    paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
+                    maxHeight: '85dvh',
                     display: 'flex',
                     flexDirection: 'column',
                     boxShadow: '0 -4px 20px rgba(0,0,0,0.4)',
+                    overflow: 'hidden',
                     animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
                 }}
                 onClick={e => e.stopPropagation()}
@@ -103,8 +106,8 @@ export const ClassAttendeesModal: React.FC<ClassAttendeesModalProps> = ({ onClos
                     </button>
                 </div>
 
-                {/* List Content - Fixed Min Height to prevent shrinking */}
-                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem', minHeight: '50vh' }} className="hide-scrollbar">
+                {/* List Content - Flexible height */}
+                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem', minHeight: 0 }} className="hide-scrollbar">
                     {activeTab === 'attendees' ? (
                         attendees.map((user) => (
                             <div key={user.id} style={{
@@ -201,6 +204,7 @@ export const ClassAttendeesModal: React.FC<ClassAttendeesModalProps> = ({ onClos
                     to { opacity: 1; }
                 }
             `}</style>
-        </div>
+        </div >,
+        document.body
     );
 };

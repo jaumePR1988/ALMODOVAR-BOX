@@ -94,17 +94,29 @@ export const CommunityChatView: React.FC<{ onBack: () => void; forcedGroup?: str
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: 'var(--color-bg)' }}>
-            {/* Header */}
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100dvh',
+            width: '100%',
+            backgroundColor: 'var(--color-bg)',
+            overflow: 'hidden', // Stop whole page scroll
+            position: 'fixed', // Force lock to viewport
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            overscrollBehavior: 'none' // Prevent pull-to-refresh/bounce
+        }}>
+            {/* Header - Stays at top */}
             <div style={{
+                flexShrink: 0, // Never shrink
                 display: 'flex',
                 alignItems: 'center',
                 padding: '1rem',
                 backgroundColor: 'var(--color-surface)',
                 borderBottom: '1px solid var(--color-border)',
                 gap: '1rem',
-                position: 'sticky',
-                top: 0,
                 zIndex: 20
             }}>
                 <button
@@ -130,8 +142,21 @@ export const CommunityChatView: React.FC<{ onBack: () => void; forcedGroup?: str
                 </button>
             </div>
 
-            {/* Messages Area */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }} className="hide-scrollbar">
+            {/* Messages Area - The ONLY thing that scrolls */}
+            <div
+                className="hide-scrollbar"
+                style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    overscrollBehaviorY: 'contain', // Native-like scroll containment
+                    padding: '1rem',
+                    paddingBottom: '0.5rem', // Space above input spacer
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                    scrollBehavior: 'smooth'
+                }}
+            >
                 {messages.map((msg) => (
                     <div
                         key={msg.id}
@@ -179,16 +204,27 @@ export const CommunityChatView: React.FC<{ onBack: () => void; forcedGroup?: str
                     </div>
                 ))}
                 <div ref={messagesEndRef} />
+                {/* Spacer for fixed input - Increased to avoid overlap */}
+                <div style={{ height: '9rem' }}></div>
             </div>
 
-            {/* Input Area */}
+            {/* Input Area - Fixed to Bottom */}
             <div style={{
-                padding: '0.75rem 1rem 2rem 1rem', // Extra bottom padding for safe area
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                maxWidth: '480px', // Match app container
+                margin: '0 auto', // Center if desktop
+                zIndex: 30,
+                padding: '0.75rem 1rem',
+                paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))', // Restore safe area
                 backgroundColor: 'var(--color-surface)',
                 borderTop: '1px solid var(--color-border)',
                 display: 'flex',
                 gap: '0.75rem',
-                alignItems: 'flex-end'
+                alignItems: 'flex-end',
+                boxShadow: '0 -4px 20px rgba(0,0,0,0.2)' // Shadow to separate from content
             }}>
                 <textarea
                     value={inputText}

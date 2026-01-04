@@ -78,7 +78,16 @@ body {
   justify-content: center;
   overscroll-behavior-y: none;
   /* Prevent elastic bouncing */
+  /* Prevent elastic bouncing */
   touch-action: pan-x pan-y;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  isolation: isolate;
 }
 
 /* Utilities */
