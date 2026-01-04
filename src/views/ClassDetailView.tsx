@@ -1,15 +1,27 @@
 import React, { useState } from 'react';
+import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { ClassAttendeesModal } from '../components/ClassAttendeesModal';
 import { WODReportView } from './WODReportView';
+import type { DashboardContextType } from './ClientDashboardView';
 
-interface ClassDetailViewProps {
-    classData: any; // Replace with proper type later
-    onBack: () => void;
-    onBook: () => void;
-    onCancel: () => void;
-}
+export const ClassDetailView: React.FC = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { handleBookClass, handleCancelClass } = useOutletContext<DashboardContextType>();
 
-export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onBack, onBook, onCancel }) => {
+    // Get classData from navigation state
+    const classData = location.state?.classData;
+
+    // Handle missing data (e.g. direct URL access without state)
+    if (!classData) {
+        // ideally redirect or show error
+        // for now, just render a fallback or redirect back
+        React.useEffect(() => {
+            navigate('/dashboard/schedule', { replace: true });
+        }, [navigate]);
+        return null;
+    }
+
     // Default values if data is missing
     const enrolled = classData.enrolled ?? 8;
     const capacity = classData.capacity ?? 10;
@@ -17,6 +29,8 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
     const spotsLeft = capacity - enrolled;
 
     // Check if user is already booked (Status check)
+    // NOTE: This relies on the classData passed from the previous screen.
+    // In a real app, we might want to re-fetch status or check against context.userClasses
     const isAttended = classData.status === 'attended';
     const isCancelled = classData.status === 'cancelled';
     const isBooked = classData.status === 'upcoming' || isAttended;
@@ -34,6 +48,25 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
         }
     }, [storageKey]);
 
+    const onBack = () => {
+        navigate(-1);
+    };
+
+    const onBook = () => {
+        handleBookClass(classData);
+        navigate(-1); // Go back after action? Or stay? Originally stayed?
+        // Let's assume we want to feedback and maybe stay or go back. 
+        // The previous implementation passed onBook which triggered a modal in parent. 
+        // context.handleBookClass does the logic. 
+        // If we want to show the success modal, it is in ClientDashboardView.
+        // So we can just call it.
+    };
+
+    const onCancel = () => {
+        handleCancelClass(classData);
+        // cancellation usually shows a confirmation modal. The context handleCancelClass handles that state.
+    };
+
     if (showWODReport) {
         return <WODReportView
             classData={classData}
@@ -43,21 +76,18 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
     }
 
     return (
-        <div style={{
-            height: '100dvh', // Changed from minHeight to height for scroll
+        <div className="safe-area-top" style={{
+            height: '100dvh',
             backgroundColor: 'var(--color-bg)',
             display: 'flex',
             flexDirection: 'column',
             position: 'fixed',
             top: 0,
-            left: '50%', // Center horizontally
-            transform: 'translateX(-50%)', // Center horizontally
-            width: '100%',
-            maxWidth: '480px', // Mobile constraint
+            left: 0,
+            right: 0,
             zIndex: 2000,
             overflowY: 'auto',
             color: 'var(--color-text-main)',
-            boxShadow: '0 0 20px rgba(0,0,0,0.5)' // Shadow to separate from background on large screens
         }}>
             {/* ... Header & Main Content ... */}
             {/* Header */}
@@ -65,9 +95,6 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                 position: 'fixed',
                 top: 0,
                 width: '100%',
-                maxWidth: '480px', // Constraint
-                left: '50%', // Center
-                transform: 'translateX(-50%)', // Center
                 zIndex: 2010,
                 backgroundColor: 'var(--color-bg-translucent)',
                 backdropFilter: 'blur(12px)',
@@ -76,7 +103,8 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '0 1rem'
+                padding: '0 1rem',
+                paddingTop: 'env(safe-area-inset-top)'
             }}>
                 <button
                     onClick={onBack}
@@ -103,9 +131,10 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1.5rem',
-                maxWidth: '480px',
+                maxWidth: '600px',
                 margin: '0 auto',
-                width: '100%'
+                width: '100%',
+                paddingTop: 'calc(64px + env(safe-area-inset-top))'
             }}>
                 {/* Hero Image */}
                 <div style={{
@@ -199,7 +228,6 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                         cursor: 'pointer',
                         transition: 'transform 0.1s',
                         transform: 'scale(1)',
-                        // Hover effect handled in CSS usually, but inline for simple react
                     }}
                     onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.transform = 'scale(0.98)'}
                     onMouseUp={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.transform = 'scale(1)'}
@@ -368,9 +396,6 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classData, onB
                         Ver sesión completa
                     </button>
                 </div>
-
-
-
 
                 {/* Location */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.5rem' }}>

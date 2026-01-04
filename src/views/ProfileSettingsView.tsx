@@ -2,12 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-interface ProfileSettingsViewProps {
-    onBack: () => void;
-    onNavigate: (view: string) => void;
-}
-
-export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({ onBack, onNavigate }) => {
+export const ProfileSettingsView: React.FC = () => {
     const { userData, logout } = useAuth();
     const navigate = useNavigate();
 
@@ -36,7 +31,7 @@ export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({ onBack
                 alignItems: 'center'
             }}>
                 <button
-                    onClick={onBack}
+                    onClick={() => navigate(-1)}
                     style={{
                         padding: '0.5rem',
                         marginLeft: '-0.5rem',
@@ -119,7 +114,7 @@ export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({ onBack
 
                         {/* Notifications */}
                         <button
-                            onClick={() => onNavigate('ajustes-notificaciones')}
+                            onClick={() => navigate('/dashboard/settings/notifications')}
                             style={{
                                 width: '100%',
                                 display: 'flex',
@@ -152,7 +147,7 @@ export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({ onBack
                         overflow: 'hidden'
                     }}>
                         <button
-                            onClick={() => onNavigate('legal')}
+                            onClick={() => alert('Próximamente')}
                             style={{
                                 width: '100%',
                                 display: 'flex',

@@ -2,24 +2,31 @@ import React from 'react';
 import { BottomNav } from './BottomNav';
 import { auth } from '../firebase';
 import { useTheme } from '../context/ThemeContext';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface MainLayoutProps {
     children: React.ReactNode;
-    activeTab: string;
-    onTabChange: (tab: string) => void;
     userName?: string;
     userPhotoUrl?: string;
-    hideNav?: boolean;
+    hideNav?: boolean; // Prop to hide nav (e.g. chat, specific pages)
     hideHeader?: boolean;
     onChatClick?: () => void;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onTabChange, userName, userPhotoUrl, hideNav, hideHeader, onChatClick }) => {
+export const MainLayout: React.FC<MainLayoutProps> = ({ children, userName, userPhotoUrl, hideNav, hideHeader, onChatClick }) => {
     const { theme, toggleTheme } = useTheme();
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Determine if we should show nav based on path (optional override)
+    // If hideNav is passed explicitly, respect it. Otherwise check path.
+    const shouldHideNav = hideNav;
+
     return (
         <div className="app-container">
             {/* Native-Like Fixed Header */}
-            {!hideNav && !hideHeader && (
+            {!shouldHideNav && !hideHeader && (
                 <header style={{
                     position: 'sticky',
                     top: 0,
@@ -75,7 +82,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onT
                             <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>chat_bubble_outline</span>
                         </div>
                         <div
-                            onClick={() => onTabChange('notificaciones')}
+                            onClick={() => navigate('/dashboard/notifications')}
                             style={{
                                 position: 'relative',
                                 width: '2.25rem',
@@ -85,8 +92,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onT
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: activeTab === 'notificaciones' ? 'var(--color-primary)' : 'var(--color-text-main)',
-                                border: activeTab === 'notificaciones' ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                                color: location.pathname.includes('notifications') ? 'var(--color-primary)' : 'var(--color-text-main)',
+                                border: location.pathname.includes('notifications') ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
                                 overflow: 'hidden',
                                 cursor: 'pointer'
                             }}>
@@ -113,13 +120,23 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, onT
                 </header>
             )}
 
-            {/* Main Content Area */}
+            {/* Main Content Area with Animations */}
             <main style={{ flex: 1, overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                {children}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={location.pathname}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}
+                    >
+                        {children}
+                    </motion.div>
+                </AnimatePresence>
             </main>
 
             {/* Native-Like Fixed Bottom Nav */}
-            {!hideNav && <BottomNav activeTab={activeTab} onTabChange={onTabChange} />}
+            {!shouldHideNav && <BottomNav />}
         </div>
     );
 };

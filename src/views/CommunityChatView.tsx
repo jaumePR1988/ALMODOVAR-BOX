@@ -11,7 +11,17 @@ interface Message {
     role?: 'coach' | 'admin' | 'user';
 }
 
-export const CommunityChatView: React.FC<{ onBack: () => void; forcedGroup?: string }> = ({ onBack, forcedGroup }) => {
+import { useNavigate, useLocation } from 'react-router-dom';
+
+interface CommunityChatViewProps {
+    onBack?: () => void;
+    forcedGroup?: string;
+}
+
+export const CommunityChatView: React.FC<CommunityChatViewProps> = ({ onBack, forcedGroup: propForcedGroup }) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const forcedGroup = propForcedGroup || location.state?.forcedGroup;
     const { user, userData } = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
@@ -120,7 +130,10 @@ export const CommunityChatView: React.FC<{ onBack: () => void; forcedGroup?: str
                 zIndex: 20
             }}>
                 <button
-                    onClick={onBack}
+                    onClick={() => {
+                        if (onBack) onBack();
+                        else navigate(-1);
+                    }}
                     style={{
                         background: 'none',
                         border: 'none',
@@ -205,7 +218,7 @@ export const CommunityChatView: React.FC<{ onBack: () => void; forcedGroup?: str
                 ))}
                 <div ref={messagesEndRef} />
                 {/* Spacer for fixed input - Increased to avoid overlap */}
-                <div style={{ height: '9rem' }}></div>
+                <div style={{ height: 'calc(10rem + env(safe-area-inset-bottom))' }}></div>
             </div>
 
             {/* Input Area - Fixed to Bottom */}
@@ -218,7 +231,7 @@ export const CommunityChatView: React.FC<{ onBack: () => void; forcedGroup?: str
                 margin: '0 auto', // Center if desktop
                 zIndex: 30,
                 padding: '0.75rem 1rem',
-                paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))', // Restore safe area
+                paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))', // Restore safe area
                 backgroundColor: 'var(--color-surface)',
                 borderTop: '1px solid var(--color-border)',
                 display: 'flex',

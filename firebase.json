@@ -12,5 +12,9 @@
                 "destination": "/index.html"
             }
         ]
+    },
+    "storage": {
+        "rules": "storage.rules",
+        "bucket": "almodovarbox-b456a.firebasestorage.app"
     }
 }

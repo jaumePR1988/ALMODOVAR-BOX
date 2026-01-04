@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { db } from '../firebase';
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 
 interface ExerciseLibraryViewProps {
     onBack: () => void;
@@ -6,50 +9,58 @@ interface ExerciseLibraryViewProps {
 }
 
 export const ExerciseLibraryView: React.FC<ExerciseLibraryViewProps> = ({ onBack, onSelect }) => {
-    // Mock Data based on HTML
+    const navigate = useNavigate();
+    // Firestore Integration
+    const [exercises, setExercises] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilter, setActiveFilter] = useState('Todos');
 
-    const exercises = [
-        {
-            id: 1,
-            name: 'Back Squat',
-            description: 'Barbell high bar squat for lower body.',
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBrd5b2oD4CmG3h3WgSgWZd5skT1gBU1KpBR9yKO-_uVPZi6xZ6ItqnUoXhhISJuusQWRZhkDaFLUayf6ZCl8iTHlRCVrzvGjQ1opLxlU5PTv6NEt2ztgP00eP41WU9sugsH5T-gMF7eO0aLS7_E0mHU2D3gDtvAlm4NK8rA744pGrbSwkVIZD17F4uPv6tT2PNInziuDkMGJYzAuZU2PJdnvFYpJNgL5ND0IG0nXwhqhR0xrHyrkSyGyj24pXLKVdoUdGj-TulXZ8",
-            tags: ['Fuerza', 'Piernas'],
-            category: 'Fuerza'
-        },
-        {
-            id: 2,
-            name: 'Push Ups',
-            description: 'Flexiones estándar en el suelo.',
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBfcg0XPA0LaJ3p-ahyCVk8GFsAGlyxmCK8yfScGfke87UA-h0vzdCiFduCapnveRV1jNneRQg0oG1cms3EcszKBOriJnJaZfGie-cI2N_tWAzz6ANbmFV5vHiBaFQHnWnAbHGwvFl-x3Cgq3LFv6p7xhSCAQkL_GVOT9b4FHbE61vUjvkot004aK9HqwQFK01a18-I11W0HPxDzD5vuRN6pptL0cW1SihoP-m3AFfv2XdULUhrf5__CwFZA7uZ5PORT-QTVVLZYl8",
-            tags: ['Funcional', 'Pecho'],
-            category: 'Funcional'
-        },
-        {
-            id: 3,
-            name: 'Burpees',
-            description: 'Cardio intenso de cuerpo completo.',
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCd54a-ImETfTVz2gFM4OYUm198ahuNitORe9lHNWQ8OgkddWiSz-U7FkwbABLlwQdh8eC0BuIl_oTGzYwflRFWwEOFTOBii4Z3m-r5C-F0rIc4PIjlt2_Q2Q5XaJbYiywdK00c2JmN6Nxu74doaNJ6L2pjE8A07ZJlxq_Rpy5hjnnYfVUWcq36Ri4aw0vOwLT2PnTYEa00V6IaU9Lw1Atj7sjczVvHequLXDCFS09bqBpNn4ftkXnBTjYUUsKK2F6E9EWT5C4hzWM",
-            tags: ['Cardio', 'Full Body'],
-            category: 'Cardio'
-        },
-        {
-            id: 4,
-            name: 'Dumbbell Row',
-            description: 'Sin foto adjunta.',
-            image: null,
-            tags: ['Fuerza', 'Espalda'],
-            category: 'Fuerza'
-        },
-    ];
+    useEffect(() => {
+        const q = query(collection(db, 'exercises'), orderBy('createdAt', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const exercisesData = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    name: data.name,
+                    description: data.description,
+                    image: data.imageUrl, // Map Firestore imageUrl to local image
+                    tags: [data.muscleGroup, data.type].filter(Boolean), // Create tags from metadata
+                    category: data.type || 'General',
+                    // Pass raw data for editing
+                    ...data
+                };
+            });
+            setExercises(exercisesData);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     const filteredExercises = exercises.filter(ex => {
         const matchesSearch = ex.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = activeFilter === 'Todos' || ex.category === activeFilter; // Simplified logic for demo
+        const matchesFilter = activeFilter === 'Todos' || ex.category === activeFilter || ex.tags.includes(activeFilter);
         return matchesSearch && matchesFilter;
     });
+
+    const handleDelete = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        if (window.confirm('¿Estás seguro de que quieres eliminar este ejercicio?')) {
+            try {
+                await deleteDoc(doc(db, 'exercises', id));
+            } catch (error) {
+                console.error("Error removing document: ", error);
+                alert("Error al eliminar el ejercicio.");
+            }
+        }
+    };
+
+    const handleEdit = (e: React.MouseEvent, exercise: any) => {
+        e.stopPropagation();
+        navigate('/dashboard/coach/add-exercise', { state: exercise });
+    };
 
     return (
         <div style={{
@@ -110,18 +121,20 @@ export const ExerciseLibraryView: React.FC<ExerciseLibraryViewProps> = ({ onBack
                                 }}
                             />
                         </div>
-                        <button style={{
-                            backgroundColor: 'var(--color-primary)',
-                            color: 'white',
-                            width: '3rem',
-                            borderRadius: '0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 10px 15px -3px rgba(239, 68, 68, 0.2)',
-                            border: 'none',
-                            cursor: 'pointer'
-                        }}>
+                        <button
+                            onClick={() => navigate('/dashboard/coach/add-exercise')}
+                            style={{
+                                backgroundColor: 'var(--color-primary)',
+                                color: 'white',
+                                width: '3rem',
+                                borderRadius: '0.75rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 10px 15px -3px rgba(239, 68, 68, 0.2)',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}>
                             <span className="material-icons-round">add</span>
                         </button>
                     </div>
@@ -164,74 +177,93 @@ export const ExerciseLibraryView: React.FC<ExerciseLibraryViewProps> = ({ onBack
                     </button>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {filteredExercises.map(ex => (
-                        <div key={ex.id} style={{
-                            backgroundColor: 'var(--color-surface)',
-                            borderRadius: '1rem',
-                            padding: '0.75rem',
-                            border: '1px solid var(--color-border)',
-                            display: 'flex',
-                            gap: '1rem',
-                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                            transition: 'transform 0.2s',
-                            cursor: 'pointer',
-                            position: 'relative'
-                        }}>
-                            <div style={{ width: '6rem', height: '6rem', borderRadius: '0.75rem', backgroundColor: 'var(--color-bg)', flexShrink: 0, overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {ex.image ? (
-                                    <img src={ex.image} alt={ex.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                ) : (
-                                    <span className="material-icons-round" style={{ fontSize: '2.5rem', color: 'var(--color-text-muted)' }}>fitness_center</span>
-                                )}
-                            </div>
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0.125rem 0' }}>
-                                <div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, lineHeight: 1.25 }}>{ex.name}</h3>
+                {loading ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '10rem' }}>
+                        <div style={{
+                            width: '2rem', height: '2rem', borderRadius: '50%',
+                            border: '3px solid var(--color-surface)', borderTopColor: 'var(--color-primary)',
+                            animation: 'spin 1s linear infinite'
+                        }}></div>
+                        <style>{`
+                            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                        `}</style>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {filteredExercises.map(ex => (
+                            <div key={ex.id} style={{
+                                backgroundColor: 'var(--color-surface)',
+                                borderRadius: '1rem',
+                                padding: '0.75rem',
+                                border: '1px solid var(--color-border)',
+                                display: 'flex',
+                                gap: '1rem',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                transition: 'transform 0.2s',
+                                cursor: 'pointer',
+                                position: 'relative'
+                            }}>
+                                <div style={{ width: '6rem', height: '6rem', borderRadius: '0.75rem', backgroundColor: 'var(--color-bg)', flexShrink: 0, overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {ex.image ? (
+                                        <img src={ex.image} alt={ex.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <span className="material-icons-round" style={{ fontSize: '2.5rem', color: 'var(--color-text-muted)' }}>fitness_center</span>
+                                    )}
+                                </div>
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0.125rem 0' }}>
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, lineHeight: 1.25 }}>{ex.name}</h3>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onSelect?.(ex);
+                                                }}
+                                                style={{
+                                                    backgroundColor: 'var(--color-primary)',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '50%',
+                                                    width: '1.75rem',
+                                                    height: '1.75rem',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                    marginTop: '-0.25rem',
+                                                    marginRight: '-0.25rem'
+                                                }}
+                                            >
+                                                <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>add</span>
+                                            </button>
+                                        </div>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: '0.25rem 0 0.5rem 0', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{ex.description}</p>
+                                        <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                                            <span style={{ fontSize: '0.625rem', padding: '0.125rem 0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', borderRadius: '0.25rem' }}>{ex.category}</span>
+                                            {/* Show simple second tag logic based on array */}
+                                            {ex.tags[1] && <span style={{ fontSize: '0.625rem', padding: '0.125rem 0.5rem', backgroundColor: 'var(--color-bg)', color: 'var(--color-text-muted)', fontWeight: 500, borderRadius: '0.25rem' }}>{ex.tags[1]}</span>}
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.25rem', paddingTop: '0.5rem', borderTop: '1px solid var(--color-bg)', marginTop: '0.5rem' }}>
                                         <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onSelect?.(ex);
-                                            }}
-                                            style={{
-                                                backgroundColor: 'var(--color-primary)',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '50%',
-                                                width: '1.75rem',
-                                                height: '1.75rem',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                cursor: 'pointer',
-                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                marginTop: '-0.25rem',
-                                                marginRight: '-0.25rem'
-                                            }}
+                                            onClick={(e) => handleEdit(e, ex)}
+                                            style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-muted)', background: 'none', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}
                                         >
-                                            <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>add</span>
+                                            <span className="material-icons-round" style={{ fontSize: '1rem' }}>edit</span> Editar
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleDelete(e, ex.id)}
+                                            style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#ef4444', background: 'none', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}
+                                        >
+                                            <span className="material-icons-round" style={{ fontSize: '1rem' }}>delete</span> Borrar
                                         </button>
                                     </div>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: '0.25rem 0 0.5rem 0', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{ex.description}</p>
-                                    <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-                                        <span style={{ fontSize: '0.625rem', padding: '0.125rem 0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', borderRadius: '0.25rem' }}>{ex.category}</span>
-                                        {/* Show simple second tag logic based on array */}
-                                        {ex.tags[1] && <span style={{ fontSize: '0.625rem', padding: '0.125rem 0.5rem', backgroundColor: 'var(--color-bg)', color: 'var(--color-text-muted)', fontWeight: 500, borderRadius: '0.25rem' }}>{ex.tags[1]}</span>}
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.25rem', paddingTop: '0.5rem', borderTop: '1px solid var(--color-bg)', marginTop: '0.5rem' }}>
-                                    <button style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-muted)', background: 'none', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
-                                        <span className="material-icons-round" style={{ fontSize: '1rem' }}>edit</span> Editar
-                                    </button>
-                                    <button style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#ef4444', background: 'none', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
-                                        <span className="material-icons-round" style={{ fontSize: '1rem' }}>delete</span> Borrar
-                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </main>
 
             {/* Bottom Nav - simplified for this specific view */}

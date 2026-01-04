@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 // import { useAuth } from '../context/AuthContext';
 
-interface NotificationsSettingsViewProps {
-    onBack: () => void;
-}
+import { useNavigate } from 'react-router-dom';
 
-export const NotificationsSettingsView: React.FC<NotificationsSettingsViewProps> = ({ onBack }) => {
+export const NotificationsSettingsView: React.FC = () => {
+    const navigate = useNavigate();
     // const { userData } = useAuth(); // Removed unused variable causing build error
     // Emulated state for toggles (visual only for now as emulated backend)
     const [settings, setSettings] = useState({
@@ -44,7 +43,7 @@ export const NotificationsSettingsView: React.FC<NotificationsSettingsViewProps>
                 padding: '1rem'
             }}>
                 <button
-                    onClick={onBack}
+                    onClick={() => navigate(-1)}
                     style={{
                         color: 'var(--color-text-main)',
                         display: 'flex',

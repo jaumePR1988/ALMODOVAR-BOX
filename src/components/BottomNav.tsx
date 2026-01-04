@@ -1,24 +1,31 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface BottomNavProps {
-    activeTab: string;
-    onTabChange: (tab: string) => void;
+    // Legacy props kept for compatibility if needed, but mainly unused now
+    activeTab?: string;
+    onTabChange?: (tab: string) => void;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
+export const BottomNav: React.FC<BottomNavProps> = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const isActive = (path: string) => location.pathname.includes(path);
+
     return (
         <nav className="bottom-nav-fixed">
             <div
-                className={`bottom-nav-item ${activeTab === 'inicio' ? 'active' : ''}`}
-                onClick={() => onTabChange('inicio')}
+                className={`bottom-nav-item ${isActive('/home') ? 'active' : ''}`}
+                onClick={() => navigate('/dashboard/home')}
             >
                 <span className="material-icons-round">home</span>
                 <span>Inicio</span>
             </div>
 
             <div
-                className={`bottom-nav-item ${activeTab === 'retos' ? 'active' : ''}`}
-                onClick={() => onTabChange('retos')}
+                className={`bottom-nav-item ${isActive('/challenges') ? 'active' : ''}`}
+                onClick={() => navigate('/dashboard/challenges')}
                 style={{ marginRight: '1rem' }}
             >
                 <span className="material-icons-round">emoji_events</span>
@@ -26,8 +33,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
             </div>
 
             <div
-                className={`nav-fab-container ${activeTab === 'reservas' ? 'active' : ''}`}
-                onClick={() => onTabChange('reservas')}
+                className={`nav-fab-container ${isActive('/schedule') ? 'active' : ''}`}
+                onClick={() => navigate('/dashboard/schedule')}
             >
                 <div className="nav-fab-sphere">
                     <span className="material-icons-round">add</span>
@@ -36,8 +43,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
             </div>
 
             <div
-                className={`bottom-nav-item ${activeTab === 'noticias' ? 'active' : ''}`}
-                onClick={() => onTabChange('noticias')}
+                className={`bottom-nav-item ${isActive('/news') ? 'active' : ''}`}
+                onClick={() => navigate('/dashboard/news')}
                 style={{ marginLeft: '1rem' }}
             >
                 <span className="material-icons-round">newspaper</span>
@@ -45,8 +52,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
             </div>
 
             <div
-                className={`bottom-nav-item ${activeTab === 'perfil' ? 'active' : ''}`}
-                onClick={() => onTabChange('perfil')}
+                className={`bottom-nav-item ${isActive('/profile') || isActive('/settings') ? 'active' : ''}`}
+                onClick={() => navigate('/dashboard/profile')}
             >
                 <span className="material-icons-round">fitness_center</span>
                 <span>Perfil</span>

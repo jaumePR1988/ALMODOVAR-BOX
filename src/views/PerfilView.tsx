@@ -2,14 +2,13 @@ import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { storage, db } from '../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 
-interface PerfilViewProps {
-    onSettingsClick?: () => void;
-}
+import { useNavigate } from 'react-router-dom';
 
-export const PerfilView: React.FC<PerfilViewProps> = ({ onSettingsClick }) => {
+export const PerfilView: React.FC = () => {
     const { userData, user } = useAuth();
+    const navigate = useNavigate();
     const membership = userData?.membership || 'fit'; // Default to fit
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,9 +94,9 @@ export const PerfilView: React.FC<PerfilViewProps> = ({ onSettingsClick }) => {
             await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(storageRef);
 
-            await updateDoc(doc(db, 'users', user.uid), {
+            await setDoc(doc(db, 'users', user.uid), {
                 photoURL: downloadURL
-            });
+            }, { merge: true });
 
             // Success - Cleanup object URL
             URL.revokeObjectURL(objectUrl);
@@ -131,10 +130,10 @@ export const PerfilView: React.FC<PerfilViewProps> = ({ onSettingsClick }) => {
         setIsEditing(false);
 
         try {
-            await updateDoc(doc(db, 'users', user.uid), {
+            await setDoc(doc(db, 'users', user.uid), {
                 firstName: editName,
                 lastName: editLastName
-            });
+            }, { merge: true });
             // Success - userData will eventually update via onSnapshot
         } catch (error) {
             console.error("Error updating profile:", error);
@@ -168,7 +167,7 @@ export const PerfilView: React.FC<PerfilViewProps> = ({ onSettingsClick }) => {
             }}>
                 <h1 style={{ fontSize: '1.125rem', fontWeight: 800, margin: 0 }}>Mi Perfil</h1>
                 <button
-                    onClick={onSettingsClick}
+                    onClick={() => navigate('/dashboard/settings')}
                     style={{
                         padding: '0.5rem',
                         borderRadius: '50%',
@@ -426,6 +425,40 @@ export const PerfilView: React.FC<PerfilViewProps> = ({ onSettingsClick }) => {
                         }}>
                         {showAllHistory ? 'Ver menos' : 'Ver todo el historial'}
                         <span className="material-icons-round" style={{ fontSize: '1.25rem', transform: showAllHistory ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>expand_more</span>
+                    </button>
+                </section>
+
+                {/* Evolution Banner */}
+                <section>
+                    <button
+                        onClick={() => navigate('/dashboard/profile/evolution')}
+                        style={{
+                            width: '100%',
+                            background: 'linear-gradient(135deg, var(--color-primary) 0%, #a3001b 100%)',
+                            borderRadius: 'var(--radius-xl)',
+                            padding: '1.25rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            color: 'white',
+                            border: 'none',
+                            cursor: 'pointer',
+                            boxShadow: '0 8px 20px -5px rgba(211, 0, 31, 0.4)',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'url("https://www.transparenttextures.com/patterns/carbon-fibre.png")', opacity: 0.1 }}></div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative', zIndex: 1 }}>
+                            <div style={{ width: '3rem', height: '3rem', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <span className="material-icons-round" style={{ fontSize: '1.75rem' }}>show_chart</span>
+                            </div>
+                            <div style={{ textAlign: 'left' }}>
+                                <h3 style={{ fontSize: '1.125rem', fontWeight: 800, margin: 0, lineHeight: 1.2 }}>Mi Evolución</h3>
+                                <p style={{ fontSize: '0.75rem', opacity: 0.9, margin: 0 }}>Ver mis marcas y RMs</p>
+                            </div>
+                        </div>
+                        <span className="material-icons-round" style={{ position: 'relative', zIndex: 1 }}>arrow_forward_ios</span>
                     </button>
                 </section>
 
