@@ -1,34 +1,78 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-brand-red: #E30031;
+  --color-brand-dark: #292C3D;
+  --color-brand-gray: #8C919D;
+  --color-background-light: #F8F9FA;
+  --color-text-primary: #292C3D;
+  --color-primary: #E30031;
+
+  --font-display: Montserrat, sans-serif;
+  --font-sans: Montserrat, sans-serif;
+
+  --radius-default: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  --shadow-soft: 0 4px 20px -2px rgba(41, 44, 61, 0.08);
+}
 
 :root {
-  /* Brand Colors extracted from HTML */
-  --color-primary: #D3001F;
-  --color-secondary: #1A1A2E;
+  --color-primary: #E30031;
+  --color-secondary: #292C3D;
 
-  /* System Colors */
-  --background-light: #F3F4F6;
-  --background-dark: #111827;
-  --card-light: #FFFFFF;
-  --card-dark: #1F2937;
-  --text-light: #1F2937;
-  --text-dark: #F9FAFB;
-  --color-primary-light: rgba(211, 0, 31, 0.1);
+  --color-bg: #F8F9FA;
+  --color-surface: #FFFFFF;
+  --color-surface-rgb: 255, 255, 255;
+  --color-text-main: #292C3D;
+  --color-text-muted: #8C919D;
+  --color-border: #E5E7EB;
+}
 
-  /* Defaults (Night Mode as base) */
+[data-theme="dark"] {
   --color-bg: #111827;
   --color-surface: #1F2937;
   --color-surface-rgb: 31, 41, 55;
   --color-text-main: #F9FAFB;
   --color-text-muted: #9CA3AF;
   --color-border: #374151;
+}
 
-  /* Spacing & Radius */
-  --radius-default: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 24px;
-  --radius-full: 9999px;
+/* Material Symbols Support */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+
+  &.filled {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+/* Theme-specific Overrides */
+html.light body {
+  background-color: #F8F9FA !important;
+  display: block !important;
+  height: auto !important;
+  width: 100% !important;
+  overflow: auto !important;
+}
+
+html.light #root {
+  display: block !important;
 }
 
 [data-theme="light"] {
