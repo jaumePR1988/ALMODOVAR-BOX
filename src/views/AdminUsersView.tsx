@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, type QuerySnapshot, type DocumentData, type FirestoreError } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 
 interface User {
@@ -25,19 +25,56 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ onBack }) => {
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'overview' | 'pending'>('overview');
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [approvalFormData, setApprovalFormData] = useState({
+        plan: 'liebre',
+        group: 'morning',
+        role: 'cliente'
+    });
+
+    // ... useEffect ...
+
+    const openApprovalModal = (user: User) => {
+        setSelectedUser(user);
+        setApprovalFormData({
+            plan: 'liebre',
+            group: 'morning',
+            role: 'cliente'
+        });
+    };
+
+    const confirmApprove = async () => {
+        if (!selectedUser) return;
+
+        try {
+            await updateDoc(doc(db, 'users', selectedUser.id), {
+                approved: true,
+                plan: approvalFormData.plan,
+                group: approvalFormData.group,
+                role: approvalFormData.role,
+                approvedAt: new Date().toISOString()
+            });
+
+            // Optimistic update
+            setUsers(prev => prev.map(u => u.id === selectedUser.id ? {
+                ...u,
+                approved: true,
+                plan: approvalFormData.plan,
+                group: approvalFormData.group,
+                role: approvalFormData.role
+            } : u));
+
+            setSelectedUser(null);
+        } catch (error) {
+            console.error("Error approving user:", error);
+        }
+    };
 
     useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    const fetchUsers = async () => {
-        setLoading(true);
-        try {
-            const usersRef = collection(db, 'users');
-            const querySnapshot = await getDocs(usersRef);
-
+        const usersRef = collection(db, 'users');
+        const unsubscribe = onSnapshot(usersRef, (snapshot: QuerySnapshot<DocumentData>) => {
             const fetchedUsers: User[] = [];
-            querySnapshot.forEach((doc) => {
+            snapshot.forEach((doc) => {
                 const data = doc.data();
                 fetchedUsers.push({
                     id: doc.id,
@@ -52,23 +89,17 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ onBack }) => {
                 });
             });
             setUsers(fetchedUsers);
-        } catch (error) {
-            console.error("Error fetching users:", error);
-        } finally {
             setLoading(false);
-        }
-    };
+        }, (error: FirestoreError) => {
+            console.error("Error subscribing to users:", error);
+            setLoading(false);
+        });
 
-    const handleApprove = async (userId: string) => {
-        try {
-            await updateDoc(doc(db, 'users', userId), {
-                approved: true
-            });
-            setUsers(prev => prev.map(u => u.id === userId ? { ...u, approved: true } : u));
-        } catch (error) {
-            console.error("Error approving user:", error);
-        }
-    };
+        // Cleanup subscription on unmount
+        return () => unsubscribe();
+    }, []);
+
+
 
     const pendingUsers = users.filter(u => !u.approved);
     const activeUsers = users.filter(u => u.approved);
@@ -144,7 +175,7 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ onBack }) => {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => handleApprove(user.id)}
+                                    onClick={() => openApprovalModal(user)}
                                     className="w-full py-2.5 bg-brand-red text-white font-bold rounded-lg shadow-lg shadow-brand-red/20 active:scale-[0.98] transition-transform"
                                 >
                                     Aprobar Acceso
@@ -153,6 +184,86 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ onBack }) => {
                         ))
                     )}
                 </main>
+
+                {/* Approval Modal */}
+                {selectedUser && (
+                    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                        <div className="bg-[var(--color-surface)] w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-slide-up sm:animate-zoom-in">
+                            <div className="p-4 border-b border-[var(--color-border)] flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-[var(--color-text-main)]">Aprobar Usuario</h3>
+                                <button onClick={() => setSelectedUser(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]">
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                            <div className="p-4 space-y-4">
+                                <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
+                                    <div className="size-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold shrink-0">
+                                        {selectedUser.firstName[0]}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-[var(--color-text-main)]">{selectedUser.firstName} {selectedUser.lastName}</p>
+                                        <p className="text-xs text-[var(--color-text-muted)]">{selectedUser.email}</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-xs font-bold text-[var(--color-text-muted)] uppercase mb-1.5">Plan de Suscripción</label>
+                                        <select
+                                            value={approvalFormData.plan}
+                                            onChange={(e) => setApprovalFormData({ ...approvalFormData, plan: e.target.value })}
+                                            className="w-full p-3 rounded-xl bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] focus:ring-2 focus:ring-brand-red outline-none appearance-none"
+                                        >
+                                            <option value="liebre">Plan Liebre (35€)</option>
+                                            <option value="gacela">Plan Gacela (55€)</option>
+                                            <option value="kanguro">Plan Kanguro (45€)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-[var(--color-text-muted)] uppercase mb-1.5">Grupo</label>
+                                        <select
+                                            value={approvalFormData.group}
+                                            onChange={(e) => setApprovalFormData({ ...approvalFormData, group: e.target.value })}
+                                            className="w-full p-3 rounded-xl bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] focus:ring-2 focus:ring-brand-red outline-none appearance-none"
+                                        >
+                                            <option value="morning">AlmodovarFit (Mañanas)</option>
+                                            <option value="afternoon">Mesocranios (Tardes)</option>
+                                            <option value="box">AlmodovarBox (General)</option>
+                                            <option value="fitboxing">Fit Boxing</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-[var(--color-text-muted)] uppercase mb-1.5">Rol de Usuario</label>
+                                        <select
+                                            value={approvalFormData.role}
+                                            onChange={(e) => setApprovalFormData({ ...approvalFormData, role: e.target.value })}
+                                            className="w-full p-3 rounded-xl bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] focus:ring-2 focus:ring-brand-red outline-none appearance-none"
+                                        >
+                                            <option value="cliente">Cliente (Atleta)</option>
+                                            <option value="coach">Coach (Entrenador)</option>
+                                            <option value="admin">Administrador</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="pt-2 flex gap-3">
+                                    <button
+                                        onClick={() => setSelectedUser(null)}
+                                        className="flex-1 py-3 font-bold text-[var(--color-text-muted)] bg-[var(--color-bg)] rounded-xl hover:bg-gray-200 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={confirmApprove}
+                                        className="flex-1 py-3 font-bold text-white bg-brand-red rounded-xl shadow-lg shadow-brand-red/20 active:scale-95 transition-transform"
+                                    >
+                                        Confirmar y Aprobar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
