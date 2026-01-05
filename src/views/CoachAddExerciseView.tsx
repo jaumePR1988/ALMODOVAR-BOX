@@ -51,12 +51,7 @@ export const CoachAddExerciseView: React.FC = () => {
             if (editData.muscleGroup) setMuscleGroup(editData.muscleGroup); // If we add this prop in Library
 
             // Fallback: if we just passed what's in LibraryView state
-            if (!editData.muscleGroup && editData.tags) {
-                // Try to find which tag is a muscle group
-                const muscles = ['chest', 'back', 'legs', 'arms', 'shoulders', 'core', 'fullbody'];
-                // logic to reverse map is hard if localized.
-                // Ideally LibraryView passes raw data. I will update LibraryView to pass 'muscleGroup' explicitly.
-            }
+            // If we add explicit props in Library, we can simplify this.
 
             if (editData.image) setImagePreview(editData.image);
             if (editData.equipment !== undefined) setEquipment(editData.equipment);

@@ -7,6 +7,7 @@ import { NotificationsView } from './NotificationsView';
 import { CoachClassDetailView } from './CoachClassDetailView';
 import { CoachScheduleView } from './CoachScheduleView';
 import { CoachAthletesView } from './CoachAthletesView';
+import { CoachNotificationsView } from './CoachNotificationsView';
 
 export const CoachDashboardView: React.FC = () => {
     const { userData, user, logout } = useAuth();
@@ -43,6 +44,12 @@ export const CoachDashboardView: React.FC = () => {
                         <NotificationsView />
                     </div>
                 );
+            case 'notificar_grupo':
+                return (
+                    <div className="animate-fade-in-up" style={{ paddingBottom: '6rem', backgroundColor: 'var(--color-background)' }}>
+                        <CoachNotificationsView onBack={() => setActiveTab('inicio')} />
+                    </div>
+                );
             case 'inicio':
                 return (
                     <main className="animate-fade-in-up" style={{ padding: '1.5rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -50,12 +57,14 @@ export const CoachDashboardView: React.FC = () => {
                         <section>
                             <h2 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Acciones Rápidas</h2>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <button style={{
-                                    backgroundColor: 'var(--color-surface)', padding: '1rem', borderRadius: '0.75rem',
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)', border: '1px solid transparent',
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                    cursor: 'pointer', transition: 'all 0.2s', color: 'var(--color-text-main)'
-                                }}>
+                                <button
+                                    onClick={() => setActiveTab('notificar_grupo')}
+                                    style={{
+                                        backgroundColor: 'var(--color-surface)', padding: '1rem', borderRadius: '0.75rem',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)', border: '1px solid transparent',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                        cursor: 'pointer', transition: 'all 0.2s', color: 'var(--color-text-main)'
+                                    }}>
                                     <div style={{ height: '2.5rem', width: '2.5rem', borderRadius: '50%', backgroundColor: 'rgba(211, 0, 31, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
                                         <span className="material-icons-round">campaign</span>
                                     </div>

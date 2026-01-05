@@ -232,7 +232,7 @@ export const WODReportView: React.FC<WODReportViewProps> = ({ classData, wodExer
                                     </div>
 
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                        {sectionExercises.map((ex, index) => {
+                                        {sectionExercises.map((ex) => {
                                             // Localization Helper Maps
                                             const typeMap: Record<string, string> = {
                                                 strength: 'Fuerza', cardio: 'Cardio', flexibility: 'Flexibilidad',

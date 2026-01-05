@@ -18,8 +18,6 @@ export const CoachClassDetailView: React.FC<CoachClassDetailViewProps> = ({ clas
     const enrolled = Math.min(enrolledCount, capacity);
     const waitlist = Math.max(0, enrolledCount - capacity);
 
-    const isFull = enrolledCount >= capacity;
-
     // In Coach View, we don't check "isBooked" because the coach manages the class
     const [showAttendees, setShowAttendees] = useState(false);
     const [showAttendanceList, setShowAttendanceList] = useState(false);
