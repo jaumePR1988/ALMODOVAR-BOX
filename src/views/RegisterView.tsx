@@ -69,7 +69,7 @@ export const RegisterView: React.FC = () => {
                     city: formData.city
                 },
                 role: 'cliente',
-                approved: true, // TEMPORARY: Validation disabled
+                approved: false, // User requires admin approval
                 consents: {
                     terms: true, // User accepted via checkbox
                     imageRights: false, // Default to false, will be asked if needed or we can ask in form

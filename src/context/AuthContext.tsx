@@ -123,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         } else {
                             setRole('cliente');
                             // TEMPORARY: Validation disabled
-                            setIsApproved(true); // Was: setIsApproved(false);
+                            setIsApproved(false);
                         }
                     }
                     setLoading(false);
