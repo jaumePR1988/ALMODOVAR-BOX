@@ -67,71 +67,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setLoading(true); // Only block if no cache exists
                 }
 
-                // 2. Fallback timeout (safety net)
-                const fallbackTimer = setTimeout(() => {
-                    setLoading((prev) => {
-                        if (prev) {
-                            console.warn("Firestore timeout - unblocking UI with default state");
-                            return false;
-                        }
-                        return prev;
-                    });
-                }, 5000); // 5s max wait if no cache
-
                 // 3. Real-time Listener (Background Update)
                 unsubscribeDoc = onSnapshot(doc(db, 'users', firebaseUser.uid), (userDoc) => {
-                    clearTimeout(fallbackTimer); // Clear timeout on success
-
                     const email = firebaseUser.email || '';
                     if (userDoc.exists()) {
                         const data = userDoc.data();
-                        setUserData(data);
 
                         // Update cache
                         localStorage.setItem(`almodovar_user_data_${firebaseUser.uid}`, JSON.stringify(data));
+                        setUserData(data);
 
-                        // ... (Role logic same as before)
+                        // SUPER ADMIN: Always Approved
                         if (email === 'admin@almodovarbox.com') {
                             setRole('admin');
                             setIsApproved(true);
-                        } else if (email === 'coach@almodovarbox.com') {
-                            setRole('coach');
-                            setIsApproved(true);
-                        } else if (email === 'usuario@almodovarbox.com') {
-                            setRole('cliente');
-                            setIsApproved(true);
                         } else {
+                            // Standard Logic: Trust DB
                             const userRole = data.role as UserRole || 'cliente';
                             setRole(userRole);
 
-                            // Admin/Director: Always Approved
-                            if (userRole === 'admin' || userRole === 'director') {
+                            // If DB says approved, you are approved. 
+                            // If you are 'admin' in DB, you are approved (assuming manual promotion).
+                            if (userRole === 'admin') {
                                 setIsApproved(true);
                             } else {
-                                // Coach & Client: Require explicit approval
                                 setIsApproved(data.approved === true);
                             }
                         }
                     } else {
-                        // ... (New user logic)
+                        // ... (New user logic) - First time seen in Firestore
                         if (email === 'admin@almodovarbox.com') {
-                            setRole('admin'); setIsApproved(true);
-                        } else if (email === 'coach@almodovarbox.com') {
-                            setRole('coach'); setIsApproved(true);
-                        } else if (email === 'usuario@almodovarbox.com') {
-                            setRole('cliente'); setIsApproved(true);
+                            setRole('admin');
+                            setIsApproved(true);
                         } else {
                             setRole('cliente');
-                            // TEMPORARY: Validation disabled
-                            setIsApproved(false);
+                            setIsApproved(false); // STRICT: New users always pending
                         }
                     }
                     setLoading(false);
                 }, (error) => {
                     console.error("Error fetching user doc:", error);
-                    clearTimeout(fallbackTimer);
-                    // If we had cache, we are already good. If not, we unblock with defaults.
+                    // On error, we DO NOT unblock. User sees loading or error.
+                    // Or we could set loading(false) but approved(false).
+                    // Strict mode: let's show loading or kick to login? 
+                    // Let's just stop loading but deny access.
                     setLoading(false);
+                    setIsApproved(false);
                 });
             } else {
                 setUser(null);
