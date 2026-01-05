@@ -21,10 +21,12 @@ import { NotificationsView } from './views/NotificationsView';
 import { CommunityChatView } from './views/CommunityChatView';
 import { ClassDetailView } from './views/ClassDetailView';
 import { EvolutionView } from './views/EvolutionView';
-
+import { AdminDashboardView } from './views/AdminDashboardView';
 import { CoachDashboardView } from './views/CoachDashboardView';
 import { CoachAddExerciseView } from './views/CoachAddExerciseView';
 import CoachLibraryView from './views/CoachLibraryView';
+
+// ... (imports remain)
 
 function App() {
   const [splashLoading, setSplashLoading] = useState(true);
@@ -34,22 +36,25 @@ function App() {
     return <SplashScreen onComplete={() => setSplashLoading(false)} loading={authLoading} />;
   }
 
+  // Helper for redirects
+  const getDashboardRoute = () => {
+    if (role === 'admin') return '/admin-dashboard';
+    if (role === 'coach') return '/coach-dashboard';
+    return '/dashboard';
+  };
+
   return (
     <Router>
       <Routes>
         {/* Rutas Públicas - Redirección Inteligente según Rol */}
         <Route path="/login" element={
           user ? (
-            isApproved ? (
-              role === 'coach' ? <Navigate to="/coach-dashboard" replace /> : <Navigate to="/dashboard" replace />
-            ) : <Navigate to="/waiting-approval" replace />
+            isApproved ? <Navigate to={getDashboardRoute()} replace /> : <Navigate to="/waiting-approval" replace />
           ) : <LoginView />
         } />
         <Route path="/register" element={
           user ? (
-            isApproved ? (
-              role === 'coach' ? <Navigate to="/coach-dashboard" replace /> : <Navigate to="/dashboard" replace />
-            ) : <Navigate to="/waiting-approval" replace />
+            isApproved ? <Navigate to={getDashboardRoute()} replace /> : <Navigate to="/waiting-approval" replace />
           ) : <RegisterView />
         } />
         <Route path="/terms" element={<TermsView />} />
@@ -59,6 +64,13 @@ function App() {
         {/* Ruta de Espera de Aprobación */}
         <Route path="/waiting-approval" element={
           user ? (!isApproved ? <WaitingApprovalView /> : <Navigate to="/login" replace />) : <Navigate to="/login" replace />
+        } />
+
+        {/* Rutas Privadas: Admin Dashboard */}
+        <Route path="/admin-dashboard" element={
+          user ? (
+            isApproved && role === 'admin' ? <AdminDashboardView /> : <Navigate to="/dashboard" replace />
+          ) : <Navigate to="/login" replace />
         } />
 
         {/* Rutas Privadas: Coach Dashboard */}
@@ -82,7 +94,8 @@ function App() {
         <Route path="/dashboard" element={
           user ? (
             isApproved ? (
-              role === 'coach' ? <Navigate to="/coach-dashboard" replace /> : <ClientDashboardView />
+              role === 'admin' ? <Navigate to="/admin-dashboard" replace /> :
+                role === 'coach' ? <Navigate to="/coach-dashboard" replace /> : <ClientDashboardView />
             ) : <Navigate to="/waiting-approval" replace />
           ) : <Navigate to="/login" replace />
         }>

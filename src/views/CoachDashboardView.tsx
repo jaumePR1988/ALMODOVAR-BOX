@@ -210,55 +210,64 @@ export const CoachDashboardView: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        {/* Content Section */}
-                                        <div style={{ padding: '1rem' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                                                <div>
-                                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 0.25rem 0', lineHeight: 1.2 }}>{classItem.title}</h3>
-                                                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', margin: 0 }}>
-                                                        <span className="material-icons-outlined" style={{ fontSize: '1rem' }}>location_on</span> {classItem.location}
-                                                    </p>
-                                                </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                                            {/* Left: Title & Location */}
+                                            <div>
+                                                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 0.25rem 0', lineHeight: 1.2 }}>{classItem.title}</h3>
+                                                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', margin: 0 }}>
+                                                    <span className="material-icons-outlined" style={{ fontSize: '1rem' }}>location_on</span> {classItem.location}
+                                                </p>
                                             </div>
 
+                                            {/* Right: Time */}
                                             <div style={{
-                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)'
+                                                display: 'flex', alignItems: 'center', gap: '0.25rem',
+                                                backgroundColor: 'rgba(var(--color-primary-rgb), 0.1)',
+                                                padding: '0.25rem 0.6rem', borderRadius: '0.5rem',
+                                                color: 'var(--color-primary)'
                                             }}>
-                                                {/* Attendees Count */}
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                        <span className="material-icons-outlined" style={{ fontSize: '1.25rem', color: 'var(--color-text-muted)', marginRight: '0.25rem' }}>group</span>
-                                                        <span style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>{classItem.enrolled}</span>
-                                                        <span style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>/{classItem.capacity}</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Manage Button - ALWAYS VISIBLE */}
-                                                <button style={{
-                                                    backgroundColor: 'var(--color-primary)',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    padding: '0.5rem 1.25rem',
-                                                    borderRadius: '0.5rem',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: 600,
-                                                    cursor: 'pointer',
-                                                    boxShadow: '0 4px 10px rgba(211,0,31,0.3)',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.25rem'
-                                                }}>
-                                                    <span>Gestionar</span>
-                                                    <span className="material-icons-round" style={{ fontSize: '1rem' }}>arrow_forward</span>
-                                                </button>
+                                                <span className="material-icons-round" style={{ fontSize: '1rem' }}>schedule</span>
+                                                <span style={{ fontWeight: 700, fontSize: '0.875rem' }}>{classItem.time}</span>
                                             </div>
+                                        </div>
+
+                                        <div style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)'
+                                        }}>
+                                            {/* Attendees Count */}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <span className="material-icons-outlined" style={{ fontSize: '1.25rem', color: 'var(--color-text-muted)', marginRight: '0.25rem' }}>group</span>
+                                                    <span style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>{classItem.enrolled}</span>
+                                                    <span style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>/{classItem.capacity}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Manage Button - ALWAYS VISIBLE */}
+                                            <button style={{
+                                                backgroundColor: 'var(--color-primary)',
+                                                color: 'white',
+                                                border: 'none',
+                                                padding: '0.5rem 1.25rem',
+                                                borderRadius: '0.5rem',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 600,
+                                                cursor: 'pointer',
+                                                boxShadow: '0 4px 10px rgba(211,0,31,0.3)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.25rem'
+                                            }}>
+                                                <span>Gestionar</span>
+                                                <span className="material-icons-round" style={{ fontSize: '1rem' }}>arrow_forward</span>
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </section>
-                    </main>
+                    </main >
                 );
             case 'agenda':
                 return <CoachScheduleView onBack={() => setActiveTab('inicio')} onClassSelect={setSelectedClass} />;
@@ -364,6 +373,14 @@ export const CoachDashboardView: React.FC = () => {
                     }}>
                         <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
                     </button>
+
+                    {/* Logout Button */}
+                    <button onClick={logout} style={{
+                        background: 'none', border: 'none', color: '#ef4444', width: '2.25rem', height: '2.25rem',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft: '-0.25rem'
+                    }}>
+                        <span className="material-icons-round" style={{ fontSize: '1.5rem' }}>logout</span>
+                    </button>
                 </div>
             </header>
 
@@ -431,7 +448,7 @@ export const CoachDashboardView: React.FC = () => {
                         </span>
                     </div>
 
-                    <NavItem icon="groups" label="Atletas" id="atletas" />
+                    <NavItem icon="groups" label="Alumno/a" id="atletas" />
                     <NavItem icon="settings" label="Ajustes" id="ajustes" />
                 </div>
             </nav>

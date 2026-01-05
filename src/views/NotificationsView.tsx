@@ -1,54 +1,98 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 
 export const NotificationsView: React.FC = () => {
     // Local state to simulate read/unread messages
-    // In a real app, this would be fetched from Firestore
-    const [messages, setMessages] = useState([
-        {
-            id: 1,
-            sender: 'Coach Alex',
-            time: '10:30 AM',
-            title: '¡Plan de nutrición actualizado!',
-            preview: 'Hola, he revisado tus progresos de la semana y he ajustado los macros en tu plan de comidas para maximizar tu rendimiento...',
-            type: 'person',
-            color: 'blue',
-            unread: true,
-            section: 'Hoy'
-        },
-        {
-            id: 2,
-            sender: 'Recordatorio de Clase',
-            time: '09:00 AM',
-            title: 'Tu clase comienza en 1 hora',
-            preview: 'No olvides tu toalla y botella de agua para la sesión de HIIT de las 10:00 AM.',
-            type: 'notifications_active',
-            color: 'brand-red', // Custom red
-            unread: true,
-            section: 'Hoy'
-        },
-        {
-            id: 3,
-            sender: 'Promo Suplementos',
-            time: '16:45 PM',
-            title: 'Promo Suplementos',
-            preview: 'Solo por esta semana, disfruta de un 20% de descuento en toda la gama de proteínas veganas. ¡Aprovecha ahora!',
-            type: 'local_offer',
-            color: 'purple',
-            unread: false,
-            section: 'Ayer'
-        },
-        {
-            id: 4,
-            sender: 'Mantenimiento Sauna',
-            time: '11:20 AM',
-            title: 'Mantenimiento Sauna',
-            preview: 'Informamos que la sauna masculina estará fuera de servicio por mantenimiento rutinario el día de mañana.',
-            type: 'campaign',
-            color: 'gray',
-            unread: false,
-            section: 'Ayer'
-        }
-    ]);
+    const [messages, setMessages] = useState<any[]>([]);
+
+    useEffect(() => {
+        // Real-time listener from Firestore
+        const q = query(
+            collection(db, 'notifications'),
+            orderBy('id', 'desc'), // Assuming 'id' is timestamp-based number, or use 'timestamp' field
+            limit(50)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const loadedMessages: any[] = [];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                loadedMessages.push({
+                    id: data.id || doc.id,
+                    sender: data.sender || 'Sistema',
+                    time: data.time || '',
+                    title: data.title,
+                    preview: data.preview || data.message,
+                    type: data.type || 'campaign',
+                    color: data.color || 'blue',
+                    unread: data.unread !== undefined ? data.unread : true, // Default to true if missing
+                    section: data.section || 'Hoy',
+                    // ... add other fields needed
+                });
+            });
+            // Merge with simple mocks if database is empty? OR just rely on DB?
+            // If DB is empty, user sees nothing.
+            // We can keep the mocks if DB is empty for demo purposes?
+            // Use mocks combined with DB logic?
+            // Let's rely on DB + mocks hardcoded as fallback if empty might be confusing.
+            // I'll append the mocks at the END if they are not in DB.
+            // Actually, simplest is just show DB. But to keep the "demo" feeling with "Coach Alex",
+            // I will prepend the DB messages to the hardcoded mocks as a 'base'.
+
+            const initialMock = [
+                {
+                    id: 1,
+                    sender: 'Coach Alex',
+                    time: '10:30 AM',
+                    title: '¡Plan de nutrición actualizado!',
+                    preview: 'Hola, he revisado tus progresos de la semana y he ajustado los macros en tu plan de comidas para maximizar tu rendimiento...',
+                    type: 'person',
+                    color: 'blue',
+                    unread: true,
+                    section: 'Hoy'
+                },
+                {
+                    id: 2,
+                    sender: 'Recordatorio de Clase',
+                    time: '09:00 AM',
+                    title: 'Tu clase comienza en 1 hora',
+                    preview: 'No olvides tu toalla y botella de agua para la sesión de HIIT de las 10:00 AM.',
+                    type: 'notifications_active',
+                    color: 'brand-red', // Custom red
+                    unread: true,
+                    section: 'Hoy'
+                },
+                {
+                    id: 3,
+                    sender: 'Promo Suplementos',
+                    time: '16:45 PM',
+                    title: 'Promo Suplementos',
+                    preview: 'Solo por esta semana, disfruta de un 20% de descuento en toda la gama de proteínas veganas. ¡Aprovecha ahora!',
+                    type: 'local_offer',
+                    color: 'purple',
+                    unread: false,
+                    section: 'Ayer'
+                },
+                {
+                    id: 4,
+                    sender: 'Mantenimiento Sauna',
+                    time: '11:20 AM',
+                    title: 'Mantenimiento Sauna',
+                    preview: 'Informamos que la sauna masculina estará fuera de servicio por mantenimiento rutinario el día de mañana.',
+                    type: 'campaign',
+                    color: 'gray',
+                    unread: false,
+                    section: 'Ayer'
+                }
+            ];
+            setMessages([...loadedMessages, ...initialMock]);
+        }, (error) => {
+            console.error("Error listening to notifications:", error);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     const unreadCount = messages.filter(m => m.unread).length;
 

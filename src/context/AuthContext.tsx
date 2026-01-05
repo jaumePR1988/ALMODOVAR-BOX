@@ -50,9 +50,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             setRole('coach');
                             setIsApproved(true);
                         } else {
-                            setRole(parsed.role as UserRole);
-                            // TEMPORARY: Validation disabled (Force true even if cache says false)
-                            setIsApproved(true);
+                            const cachedRole = parsed.role as UserRole;
+                            setRole(cachedRole);
+
+                            if (cachedRole === 'admin') {
+                                setIsApproved(true);
+                            } else {
+                                setIsApproved(parsed.approved === true);
+                            }
                         }
                         setLoading(false); // Unblock UI immediately
                     } catch (e) {
@@ -96,9 +101,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             setRole('cliente');
                             setIsApproved(true);
                         } else {
-                            setRole(data.role as UserRole);
-                            // TEMPORARY: Validation disabled
-                            setIsApproved(true); // Was: setIsApproved(data.approved === true);
+                            const userRole = data.role as UserRole || 'cliente';
+                            setRole(userRole);
+
+                            // Admin: Always Approved
+                            if (userRole === 'admin') {
+                                setIsApproved(true);
+                            } else {
+                                // Coach & Client: Require explicit approval
+                                setIsApproved(data.approved === true);
+                            }
                         }
                     } else {
                         // ... (New user logic)
