@@ -104,8 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             const userRole = data.role as UserRole || 'cliente';
                             setRole(userRole);
 
-                            // Admin: Always Approved
-                            if (userRole === 'admin') {
+                            // Admin/Director: Always Approved
+                            if (userRole === 'admin' || userRole === 'director') {
                                 setIsApproved(true);
                             } else {
                                 // Coach & Client: Require explicit approval
