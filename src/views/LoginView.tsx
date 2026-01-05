@@ -270,7 +270,7 @@ export const LoginView: React.FC = () => {
                     </div>
 
                     <p style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', opacity: 0.6, paddingTop: '1rem', paddingBottom: '2rem' }}>
-                        © 2025 Almodovar Group Fitness
+                        © 2025 Almodovar Group Fitness • v2.0 STRICT
                     </p>
                 </div>
             </div>
