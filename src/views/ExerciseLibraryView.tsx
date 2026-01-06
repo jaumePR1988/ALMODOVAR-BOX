@@ -63,100 +63,51 @@ export const ExerciseLibraryView: React.FC<ExerciseLibraryViewProps> = ({ onBack
     };
 
     return (
-        <div style={{
-            height: '100dvh',
-            backgroundColor: 'var(--color-bg)',
-            display: 'flex',
-            flexDirection: 'column',
-            position: 'fixed',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '100%',
-            maxWidth: '480px',
-            zIndex: 4000, // Top level
-            color: 'var(--color-text-main)',
-            boxShadow: '0 0 20px rgba(0,0,0,0.5)'
-        }}>
+        <div className="flex flex-col h-full bg-[var(--color-bg)] text-[var(--color-text-main)] overflow-hidden">
             {/* Header */}
-            <header style={{
-                backgroundColor: 'var(--color-surface)',
-                borderBottom: '1px solid var(--color-border)',
-                paddingBottom: '1rem',
-                zIndex: 50,
-                boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)'
-            }}>
-                <div style={{ padding: '3rem 1rem 0.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <button onClick={onBack} style={{ background: 'none', border: 'none', padding: '0.5rem', marginLeft: '-0.5rem', cursor: 'pointer', color: 'var(--color-text-main)' }}>
-                        <span className="material-icons-round" style={{ fontSize: '1.5rem' }}>arrow_back</span>
+            <header className="flex-shrink-0 bg-[var(--color-surface)] border-b border-[var(--color-border)] shadow-sm z-50">
+                <div className="flex items-center justify-between p-4 pb-2">
+                    <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-[var(--color-bg)] transition-colors text-[var(--color-text-main)]">
+                        <span className="material-icons-round text-2xl">arrow_back</span>
                     </button>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <h1 style={{ fontSize: '1.125rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.025em', margin: 0 }}>Biblioteca</h1>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Almodovar Group</span>
+                    <div className="flex flex-col items-center">
+                        <h1 className="text-lg font-bold uppercase tracking-tight">Biblioteca</h1>
+                        <span className="text-xs font-medium text-[var(--color-primary)] uppercase tracking-widest">Almodovar Group</span>
                     </div>
-                    <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--color-primary)', backgroundColor: '#e5e7eb' }}>
-                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx8hkqRA0LUsbAarKrWxS5J1zCK9T3qwLK0RGoNlM89kzTf2F9D_ylcGSj32M0LqGsTCZVH24zJE9TOIvMoi2q91WR7kTsxl4R8XiyLLjXWWq7v-iQ7A53tmXzIdg9ddVD5So1SRe43Cg5jhGHEWlHoaLtFRRlDhtBDgvluhv2JDCQwOlAA8paeQq_Wp5Gmpqsy3EYYn6xbBzqi7rJPXEcJogVm9SMS79vxXjhH06-vZTjFT39MUowJlw_R9mpcWLK4QU1VdsOeC0" alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[var(--color-primary)] bg-gray-200">
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx8hkqRA0LUsbAarKrWxS5J1zCK9T3qwLK0RGoNlM89kzTf2F9D_ylcGSj32M0LqGsTCZVH24zJE9TOIvMoi2q91WR7kTsxl4R8XiyLLjXWWq7v-iQ7A53tmXzIdg9ddVD5So1SRe43Cg5jhGHEWlHoaLtFRRlDhtBDgvluhv2JDCQwOlAA8paeQq_Wp5Gmpqsy3EYYn6xbBzqi7rJPXEcJogVm9SMS79vxXjhH06-vZTjFT39MUowJlw_R9mpcWLK4QU1VdsOeC0" alt="Profile" className="w-full h-full object-cover" />
                     </div>
                 </div>
 
-                <div style={{ padding: '0 1rem', marginTop: '0.5rem' }}>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <div style={{ position: 'relative', flex: 1 }}>
-                            <span className="material-icons-round" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }}>search</span>
+                <div className="px-4 pb-4 mt-2">
+                    <div className="flex gap-3 mb-4">
+                        <div className="relative flex-1">
+                            <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">search</span>
                             <input
                                 type="text"
                                 placeholder="Buscar ejercicio..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    backgroundColor: 'var(--color-bg)',
-                                    border: 'none',
-                                    borderRadius: '0.75rem',
-                                    padding: '0.75rem 1rem 0.75rem 2.5rem',
-                                    fontSize: '0.875rem',
-                                    color: 'var(--color-text-main)',
-                                    outline: 'none',
-                                    boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)'
-                                }}
+                                className="w-full bg-[var(--color-bg)] border-none rounded-xl py-3 pl-10 pr-4 text-sm text-[var(--color-text-main)] focus:ring-2 focus:ring-[var(--color-primary)] outline-none shadow-inner"
                             />
                         </div>
                         <button
                             onClick={() => navigate('/dashboard/coach/add-exercise')}
-                            style={{
-                                backgroundColor: 'var(--color-primary)',
-                                color: 'white',
-                                width: '3rem',
-                                borderRadius: '0.75rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: '0 10px 15px -3px rgba(239, 68, 68, 0.2)',
-                                border: 'none',
-                                cursor: 'pointer'
-                            }}>
+                            className="bg-[var(--color-primary)] text-white w-12 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20 hover:scale-105 transition-transform"
+                        >
                             <span className="material-icons-round">add</span>
                         </button>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', overflowX: 'auto', paddingBottom: '0.25rem' }} className="hide-scrollbar">
+                    <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
                         {['Todos', 'Fuerza', 'Cardio', 'Funcional', 'Movilidad'].map(filter => (
                             <button
                                 key={filter}
                                 onClick={() => setActiveFilter(filter)}
-                                style={{
-                                    padding: '0.375rem 1rem',
-                                    borderRadius: '9999px',
-                                    fontSize: '0.75rem',
-                                    fontWeight: filter === activeFilter ? 600 : 500,
-                                    whiteSpace: 'nowrap',
-                                    backgroundColor: filter === activeFilter ? 'var(--color-primary)' : 'var(--color-surface)',
-                                    color: filter === activeFilter ? 'white' : 'var(--color-text-muted)',
-                                    border: filter === activeFilter ? 'none' : '1px solid var(--color-border)',
-                                    cursor: 'pointer',
-                                    boxShadow: filter === activeFilter ? '0 4px 6px -1px rgba(239, 68, 68, 0.2)' : 'none',
-                                    transition: 'all 0.2s'
-                                }}
+                                className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${filter === activeFilter
+                                        ? 'bg-[var(--color-primary)] text-white shadow-md'
+                                        : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
+                                    }`}
                             >
                                 {filter}
                             </button>
@@ -166,138 +117,78 @@ export const ExerciseLibraryView: React.FC<ExerciseLibraryViewProps> = ({ onBack
             </header>
 
             {/* List */}
-            <main style={{ flex: 1, padding: '1.5rem 1rem', paddingBottom: '7rem', overflowY: 'auto' }} className="hide-scrollbar">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', padding: '0 0.25rem' }}>
-                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <main className="flex-1 overflow-y-auto p-4 content-start grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 hide-scrollbar pb-32">
+                <div className="col-span-full flex items-center justify-between mb-2 px-1">
+                    <h2 className="text-lg font-bold flex items-center gap-2">
                         Mis Ejercicios
-                        <span style={{ fontSize: '0.75rem', fontWeight: 400, backgroundColor: 'var(--color-bg)', padding: '0.125rem 0.5rem', borderRadius: '9999px', color: 'var(--color-text-muted)' }}>{filteredExercises.length}</span>
+                        <span className="text-xs font-normal bg-[var(--color-surface)] px-2 py-0.5 rounded-full text-[var(--color-text-muted)] border border-[var(--color-border)]">
+                            {filteredExercises.length}
+                        </span>
                     </h2>
-                    <button style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                        <span className="material-icons-round" style={{ fontSize: '0.875rem' }}>sort</span> Ordenar
+                    <button className="flex items-center gap-1 text-xs font-medium text-[var(--color-primary)] hover:underline">
+                        <span className="material-icons-round text-sm">sort</span> Ordenar
                     </button>
                 </div>
 
                 {loading ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '10rem' }}>
-                        <div style={{
-                            width: '2rem', height: '2rem', borderRadius: '50%',
-                            border: '3px solid var(--color-surface)', borderTopColor: 'var(--color-primary)',
-                            animation: 'spin 1s linear infinite'
-                        }}></div>
-                        <style>{`
-                            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-                        `}</style>
+                    <div className="col-span-full flex justify-center items-center h-40">
+                        <div className="w-8 h-8 border-4 border-[var(--color-surface)] border-t-[var(--color-primary)] rounded-full animate-spin"></div>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {filteredExercises.map(ex => (
-                            <div key={ex.id} style={{
-                                backgroundColor: 'var(--color-surface)',
-                                borderRadius: '1rem',
-                                padding: '0.75rem',
-                                border: '1px solid var(--color-border)',
-                                display: 'flex',
-                                gap: '1rem',
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                                transition: 'transform 0.2s',
-                                cursor: 'pointer',
-                                position: 'relative'
-                            }}>
-                                <div style={{ width: '6rem', height: '6rem', borderRadius: '0.75rem', backgroundColor: 'var(--color-bg)', flexShrink: 0, overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    {ex.image ? (
-                                        <img src={ex.image} alt={ex.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    ) : (
-                                        <span className="material-icons-round" style={{ fontSize: '2.5rem', color: 'var(--color-text-muted)' }}>fitness_center</span>
-                                    )}
+                    filteredExercises.map(ex => (
+                        <div key={ex.id} className="bg-[var(--color-surface)] rounded-2xl p-3 border border-[var(--color-border)] flex gap-4 shadow-sm hover:shadow-md transition-all group relative">
+                            <div className="w-24 h-24 rounded-xl bg-[var(--color-bg)] flex-shrink-0 overflow-hidden flex items-center justify-center relative">
+                                {ex.image ? (
+                                    <img src={ex.image} alt={ex.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="material-icons-round text-4xl text-[var(--color-text-muted)] opacity-50">fitness_center</span>
+                                )}
+                            </div>
+                            <div className="flex-1 flex flex-col justify-between py-0.5">
+                                <div>
+                                    <div className="flex justify-between items-start">
+                                        <h3 className="text-base font-bold leading-tight line-clamp-2">{ex.name}</h3>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onSelect?.(ex);
+                                            }}
+                                            className="bg-[var(--color-primary)] text-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:scale-110 transition-transform -mt-1 -mr-1"
+                                        >
+                                            <span className="material-icons-round text-lg">add</span>
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-[var(--color-text-muted)] mt-1 line-clamp-1">{ex.description}</p>
+                                    <div className="flex gap-1.5 flex-wrap mt-2">
+                                        <span className="text-[10px] px-2 py-0.5 bg-red-500/10 text-[var(--color-primary)] font-bold uppercase rounded-md tracking-wide">
+                                            {ex.category}
+                                        </span>
+                                        {ex.tags[1] && (
+                                            <span className="text-[10px] px-2 py-0.5 bg-[var(--color-bg)] text-[var(--color-text-muted)] font-semibold rounded-md">
+                                                {ex.tags[1]}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0.125rem 0' }}>
-                                    <div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                            <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, lineHeight: 1.25 }}>{ex.name}</h3>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onSelect?.(ex);
-                                                }}
-                                                style={{
-                                                    backgroundColor: 'var(--color-primary)',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '50%',
-                                                    width: '1.75rem',
-                                                    height: '1.75rem',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    cursor: 'pointer',
-                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                    marginTop: '-0.25rem',
-                                                    marginRight: '-0.25rem'
-                                                }}
-                                            >
-                                                <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>add</span>
-                                            </button>
-                                        </div>
-                                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: '0.25rem 0 0.5rem 0', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{ex.description}</p>
-                                        <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-                                            <span style={{ fontSize: '0.625rem', padding: '0.125rem 0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', borderRadius: '0.25rem' }}>{ex.category}</span>
-                                            {/* Show simple second tag logic based on array */}
-                                            {ex.tags[1] && <span style={{ fontSize: '0.625rem', padding: '0.125rem 0.5rem', backgroundColor: 'var(--color-bg)', color: 'var(--color-text-muted)', fontWeight: 500, borderRadius: '0.25rem' }}>{ex.tags[1]}</span>}
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.25rem', paddingTop: '0.5rem', borderTop: '1px solid var(--color-bg)', marginTop: '0.5rem' }}>
-                                        <button
-                                            onClick={(e) => handleEdit(e, ex)}
-                                            style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-muted)', background: 'none', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}
-                                        >
-                                            <span className="material-icons-round" style={{ fontSize: '1rem' }}>edit</span> Editar
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleDelete(e, ex.id)}
-                                            style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#ef4444', background: 'none', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}
-                                        >
-                                            <span className="material-icons-round" style={{ fontSize: '1rem' }}>delete</span> Borrar
-                                        </button>
-                                    </div>
+                                <div className="flex justify-end gap-3 pt-2 mt-2 border-t border-[var(--color-bg)] opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        onClick={(e) => handleEdit(e, ex)}
+                                        className="flex items-center gap-1 text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"
+                                    >
+                                        <span className="material-icons-round text-sm">edit</span> Editar
+                                    </button>
+                                    <button
+                                        onClick={(e) => handleDelete(e, ex.id)}
+                                        className="flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-600"
+                                    >
+                                        <span className="material-icons-round text-sm">delete</span> Borrar
+                                    </button>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    ))
                 )}
             </main>
-
-            {/* Bottom Nav - simplified for this specific view */}
-            <nav style={{
-                position: 'fixed',
-                bottom: 0,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '100%',
-                maxWidth: '480px',
-                backgroundColor: 'var(--color-surface)',
-                borderTop: '1px solid var(--color-border)',
-                paddingBottom: 'env(safe-area-inset-bottom)',
-                paddingTop: '0.5rem',
-                zIndex: 50,
-                boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.05)'
-            }}>
-                <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', height: '4rem', maxWidth: '480px', margin: '0 auto' }}>
-                    <button onClick={onBack} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', width: '4rem' }}>
-                        <span className="material-icons-round" style={{ fontSize: '1.5rem' }}>home</span>
-                        <span style={{ fontSize: '0.625rem', fontWeight: 500 }}>Inicio</span>
-                    </button>
-                    <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', width: '4rem', position: 'relative' }}>
-                        <div style={{ position: 'absolute', top: '-2.5rem', backgroundColor: 'var(--color-primary)', padding: '0.75rem', borderRadius: '50%', border: '4px solid var(--color-surface)', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-                            <span className="material-icons-round" style={{ fontSize: '1.5rem', color: 'white' }}>fitness_center</span>
-                        </div>
-                        <span style={{ fontSize: '0.625rem', fontWeight: 700, marginTop: '1.5rem' }}>Ejercicios</span>
-                    </button>
-                    <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', width: '4rem' }}>
-                        <span className="material-icons-round" style={{ fontSize: '1.5rem' }}>person</span>
-                        <span style={{ fontSize: '0.625rem', fontWeight: 500 }}>Perfil</span>
-                    </button>
-                </div>
-            </nav>
         </div>
     );
 };

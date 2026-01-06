@@ -151,6 +151,22 @@ body {
 }
 
 /* Layout Classes */
+.mobile-layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--color-bg);
+  box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  /* Center the mobile wrapper */
+  isolation: isolate;
+  /* Create stacking context */
+}
+
 .app-container {
   display: flex;
   flex-direction: column;
@@ -158,6 +174,7 @@ body {
   width: 100%;
   max-width: 480px;
   background-color: var(--color-bg);
+  margin: 0 auto;
   box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
   position: relative;
   overflow: hidden;
@@ -168,6 +185,7 @@ body {
 }
 
 /* Ensure no child can break the bank */
+.mobile-layout-wrapper>*,
 .app-container>* {
   max-width: 100%;
 }

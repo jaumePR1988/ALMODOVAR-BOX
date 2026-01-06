@@ -1,506 +1,854 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, doc, updateDoc, type QuerySnapshot, type DocumentData, type FirestoreError } from 'firebase/firestore';
-import { useAuth } from '../context/AuthContext';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+
+interface AdminUsersListProps {
+    onBack: () => void;
+}
 
 interface User {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
-    role: string;
-    group?: string;
-    approved?: boolean;
     photoURL?: string;
-    plan?: string;
-}
-
-interface AdminUsersListProps {
-    onBack?: () => void;
+    plan: 'liebre' | 'kanguro' | 'gacela';
+    group: 'almodovar_box' | 'almodovar_fit';
+    role: 'cliente' | 'coach' | 'admin';
+    approved: boolean;
+    createdAt: any;
+    renewalDate?: string;
 }
 
 export const AdminUsersList: React.FC<AdminUsersListProps> = ({ onBack }) => {
-    const { userData } = useAuth();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
-    const [viewMode, setViewMode] = useState<'overview' | 'pending'>('overview');
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterTab, setFilterTab] = useState<'todos' | 'pendientes' | 'activos'>('todos');
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [approvalFormData, setApprovalFormData] = useState({
-        plan: 'liebre',
-        group: 'almodovar_box',
-        role: 'cliente'
+    const [showModal, setShowModal] = useState(false);
+
+    // Form state for editing
+    const [editForm, setEditForm] = useState({
+        firstName: '',
+        lastName: '',
+        plan: 'liebre' as 'liebre' | 'kanguro' | 'gacela',
+        group: 'almodovar_box' as 'almodovar_box' | 'almodovar_fit',
+        role: 'cliente' as 'cliente' | 'coach' | 'admin',
+        renewalDate: ''
     });
 
-    const openApprovalModal = (user: User) => {
-        setSelectedUser(user);
-        setApprovalFormData({
-            plan: user.plan || 'liebre',
-            group: user.group || 'almodovar_box',
-            role: user.role || 'cliente'
-        });
-    };
+    // Fetch users from Firebase
+    useEffect(() => {
+        fetchUsers();
+    }, []);
 
-    const confirmApprove = async () => {
-        if (!selectedUser) return;
-
+    const fetchUsers = async () => {
+        setLoading(true);
         try {
-            await updateDoc(doc(db, 'users', selectedUser.id), {
-                approved: true,
-                plan: approvalFormData.plan,
-                group: approvalFormData.group,
-                role: approvalFormData.role,
-                approvedAt: new Date().toISOString()
+            const usersRef = collection(db, 'users');
+            const snapshot = await getDocs(usersRef);
+            const usersData: User[] = [];
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                usersData.push({
+                    id: doc.id,
+                    firstName: data.firstName || '',
+                    lastName: data.lastName || '',
+                    email: data.email || '',
+                    photoURL: data.photoURL,
+                    plan: data.plan || 'liebre',
+                    group: data.group || 'almodovar_box',
+                    role: data.role || 'cliente',
+                    approved: data.approved || false,
+                    createdAt: data.createdAt,
+                    renewalDate: data.renewalDate || ''
+                });
             });
 
-            // Optimistic update
-            setUsers(prev => prev.map(u => u.id === selectedUser.id ? {
-                ...u,
-                approved: true,
-                plan: approvalFormData.plan,
-                group: approvalFormData.group,
-                role: approvalFormData.role
-            } : u));
-
-            setSelectedUser(null);
+            setUsers(usersData);
         } catch (error) {
-            console.error("Error approving user:", error);
+            console.error('Error fetching users:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    useEffect(() => {
-        const usersRef = collection(db, 'users');
-        const unsubscribe = onSnapshot(usersRef, (snapshot: QuerySnapshot<DocumentData>) => {
-            const fetchedUsers: User[] = [];
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                fetchedUsers.push({
-                    id: doc.id,
-                    firstName: data.firstName || data.displayName?.split(' ')[0] || 'User',
-                    lastName: data.lastName || data.displayName?.split(' ').slice(1).join(' ') || '',
-                    email: data.email,
-                    role: data.role || 'cliente',
-                    group: data.group,
-                    approved: data.approved,
-                    photoURL: data.photoURL,
-                    plan: data.plan
-                });
-            });
-            setUsers(fetchedUsers);
-            setLoading(false);
-        }, (error: FirestoreError) => {
-            console.error("Error subscribing to users:", error);
-            setLoading(false);
-        });
+    // Filter users based on tab and search
+    const filteredUsers = users.filter(user => {
+        // Tab filter
+        if (filterTab === 'pendientes' && user.approved) return false;
+        if (filterTab === 'activos' && !user.approved) return false;
 
-        // Cleanup subscription on unmount
-        return () => unsubscribe();
-    }, []);
+        // Search filter
+        if (searchQuery) {
+            const search = searchQuery.toLowerCase();
+            return (
+                user.firstName.toLowerCase().includes(search) ||
+                user.lastName.toLowerCase().includes(search) ||
+                user.email.toLowerCase().includes(search)
+            );
+        }
 
-
-
-    const pendingUsers = users.filter(u => !u.approved);
-    const activeUsers = users.filter(u => u.approved);
-
-    const filteredActiveUsers = activeUsers.filter(user => {
-        const matchesSearch = (user.firstName + ' ' + user.lastName + user.email).toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesSearch;
+        return true;
     });
 
+    // Stats
+    const totalUsers = users.length;
+    const pendingUsers = users.filter(u => !u.approved).length;
 
-
-    const getGroupName = (group?: string) => {
-        if (group === 'almodovar_fit') return 'AlmodovarFIT';
-        if (group === 'almodovar_box') return 'AlmodovarBOx';
-        return 'AlmodovarBOx'; // Default
+    // Open edit modal
+    const handleEditUser = (user: User) => {
+        setSelectedUser(user);
+        setEditForm({
+            firstName: user.firstName,
+            lastName: user.lastName,
+            plan: user.plan,
+            group: user.group,
+            role: user.role,
+            renewalDate: user.renewalDate || new Date().toISOString().split('T')[0]
+        });
+        setShowModal(true);
     };
 
-    const getPlanPrice = (plan?: string) => {
-        if (plan === 'liebre') return '35€';
-        if (plan === 'gacela') return '55€';
-        return '45€';
+    // Save user changes
+    const handleSaveUser = async () => {
+        if (!selectedUser) return;
+
+        try {
+            const userRef = doc(db, 'users', selectedUser.id);
+            await updateDoc(userRef, {
+                firstName: editForm.firstName,
+                lastName: editForm.lastName,
+                plan: editForm.plan,
+                group: editForm.group,
+                role: editForm.role,
+                renewalDate: editForm.renewalDate,
+                approved: true // Auto-approve when editing
+            });
+
+            // Refresh users list
+            await fetchUsers();
+            setShowModal(false);
+            setSelectedUser(null);
+        } catch (error) {
+            console.error('Error updating user:', error);
+            alert('Error al guardar cambios');
+        }
     };
 
-    const adminPhoto = userData?.photoURL || "https://lh3.googleusercontent.com/aida-public/AB6AXuAd01bjAYpy7bJvk9wdc3SdJ0FnGWkfipgGvydD9SmZhXrwCzOOgBCV-n170DCUF5TgZROm4iJ15xtm9CzxTlKWLeeJsAUJirjjrVIxzIm_9IOQk_IFwHnQ2ZMg0apNfXi1uJGiaSnFtcGhrjMhs4TuoxwZtJGuvtxpaOcMSNDw1j8maTJpI8yW6sB1DtY9EJXqVKe0A65Dp0UA2A3UOqW84EFbJWZph3Rt90CjV2ulG_IJHdr_n6t2ufxO7mBn2H6ICqOTO_Pdzxo";
 
-    const renderHeader = (title: string, backAction: () => void) => (
-        <header className="sticky top-0 z-50 bg-[var(--color-surface)]/95 backdrop-blur-md shadow-sm pt-[env(safe-area-inset-top)] transition-colors duration-300">
-            <div className="flex items-center p-4 justify-between h-[4.5rem]">
-                <button onClick={backAction} className="text-[var(--color-text-main)] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-[var(--color-bg)] transition-colors">
-                    <span className="material-symbols-outlined text-[24px]">arrow_back</span>
+
+    return (
+        <div style={{
+            minHeight: '100dvh',
+            backgroundColor: 'var(--color-background)',
+            display: 'flex',
+            flexDirection: 'column',
+            fontFamily: "'Inter', sans-serif"
+        }}>
+            {/* Header */}
+            <header style={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 50,
+                backgroundColor: 'rgba(var(--color-surface-rgb), 0.95)',
+                backdropFilter: 'blur(12px)',
+                borderBottom: '1px solid var(--color-border)',
+                padding: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+            }}>
+                <button
+                    onClick={onBack}
+                    style={{
+                        padding: '0.5rem',
+                        marginLeft: '-0.5rem',
+                        borderRadius: '9999px',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                >
+                    <span className="material-icons-round" style={{ fontSize: '24px', color: 'var(--color-text-main)' }}>arrow_back</span>
                 </button>
-                <div className="flex flex-col items-center flex-1">
-                    <h2 className="text-[var(--color-text-main)] text-lg font-bold leading-tight tracking-tight text-center uppercase">{title}</h2>
-                    <span className="text-[10px] text-brand-red font-mono bg-brand-red/10 px-2 rounded-full border border-brand-red/20">v2.0 DARK</span>
-                </div>
-                <div className="flex size-10 items-center justify-end">
-                    <button className="flex size-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-brand-red p-0.5 hover:bg-[var(--color-bg)] transition-colors">
-                        <img alt="Profile" className="size-full rounded-full object-cover" src={adminPhoto} />
-                    </button>
-                </div>
-            </div>
-        </header>
-    );
+                <h2 style={{
+                    fontSize: '1.125rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: 'var(--color-text-main)',
+                    textAlign: 'center',
+                    flex: 1
+                }}>Gestión de Usuarios</h2>
+                <button
+                    onClick={() => {/* TODO: Add new user */ }}
+                    style={{
+                        padding: '0.5rem',
+                        borderRadius: '9999px',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                >
+                    <span className="material-icons-round" style={{ fontSize: '24px', color: 'var(--color-primary)' }}>person_add</span>
+                </button>
+            </header>
 
-    if (viewMode === 'pending') {
-        return (
-            <div className="min-h-screen bg-[var(--color-bg)] flex flex-col font-display antialiased transition-colors duration-300">
-                {renderHeader("Pendientes", () => setViewMode('overview'))}
-                <main className="flex-1 px-4 py-6 space-y-6"> {/* Increased spacing */}
-                    {pendingUsers.length === 0 ? (
-                        <div className="text-center py-10">
-                            <span className="material-symbols-outlined text-[48px] text-gray-300">check_circle</span>
-                            <p className="text-gray-500 mt-2 font-medium">No hay peticiones pendientes</p>
+            {/* Main Content */}
+            <main style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '32rem', margin: '0 auto', paddingBottom: '2rem' }}>
+
+                {/* Stats Cards */}
+                <section style={{ padding: '1rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        padding: '1rem',
+                        borderRadius: '0.75rem',
+                        border: '1px solid var(--color-border)',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <span className="material-icons-round" style={{ fontSize: '1.25rem', color: 'var(--color-primary)' }}>group</span>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Total</span>
+                        </div>
+                        <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-text-main)' }}>{totalUsers}</span>
+                    </div>
+                    <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        padding: '1rem',
+                        borderRadius: '0.75rem',
+                        border: '1px solid var(--color-border)',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                        position: 'relative'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <span className="material-icons-round" style={{ fontSize: '1.25rem', color: '#f59e0b' }}>pending</span>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Pendientes</span>
+                        </div>
+                        <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-text-main)' }}>{pendingUsers}</span>
+                        {pendingUsers > 0 && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '0.5rem',
+                                right: '0.5rem',
+                                backgroundColor: '#ef4444',
+                                color: 'white',
+                                fontSize: '0.625rem',
+                                fontWeight: 700,
+                                padding: '0.125rem 0.375rem',
+                                borderRadius: '9999px'
+                            }}>
+                                {pendingUsers}
+                            </div>
+                        )}
+                    </div>
+                </section>
+
+                {/* Filter Tabs */}
+                <section style={{ padding: '0 1rem 1rem' }}>
+                    <div style={{
+                        display: 'flex',
+                        padding: '0.25rem',
+                        borderRadius: '0.75rem',
+                        backgroundColor: 'rgba(0, 0, 0, 0.06)',
+                        border: '1px solid var(--color-border)',
+                        gap: '0.25rem'
+                    }}>
+                        {(['todos', 'pendientes', 'activos'] as const).map((tab) => (
+                            <label key={tab} style={{ flex: 1, cursor: 'pointer' }}>
+                                <input
+                                    type="radio"
+                                    name="filter_tab"
+                                    value={tab}
+                                    checked={filterTab === tab}
+                                    onChange={() => setFilterTab(tab)}
+                                    style={{ display: 'none' }}
+                                />
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '0.5rem 0.75rem',
+                                    borderRadius: '0.5rem',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 500,
+                                    textTransform: 'capitalize',
+                                    transition: 'all 0.2s',
+                                    backgroundColor: filterTab === tab ? 'var(--color-surface)' : 'transparent',
+                                    color: filterTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    boxShadow: filterTab === tab ? '0 1px 2px rgba(0,0,0,0.1)' : 'none'
+                                }}>
+                                    {tab}
+                                </div>
+                            </label>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Search Bar */}
+                <section style={{ padding: '0 1rem 1rem' }}>
+                    <div style={{ position: 'relative' }}>
+                        <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            bottom: 0,
+                            left: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            paddingLeft: '0.75rem',
+                            pointerEvents: 'none'
+                        }}>
+                            <span className="material-icons-round" style={{ color: 'var(--color-text-muted)' }}>search</span>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre o email..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{
+                                display: 'block',
+                                width: '100%',
+                                padding: '0.75rem',
+                                paddingLeft: '2.5rem',
+                                fontSize: '0.875rem',
+                                borderRadius: '0.75rem',
+                                backgroundColor: 'var(--color-surface)',
+                                border: '1px solid var(--color-border)',
+                                color: 'var(--color-text-main)',
+                                outline: 'none'
+                            }}
+                        />
+                    </div>
+                </section>
+
+                {/* Users List */}
+                <section style={{ padding: '0 1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
+                            Cargando usuarios...
+                        </div>
+                    ) : filteredUsers.length === 0 ? (
+                        <div style={{
+                            textAlign: 'center',
+                            padding: '2rem',
+                            backgroundColor: 'var(--color-surface)',
+                            borderRadius: '0.75rem',
+                            border: '1px dashed var(--color-border)'
+                        }}>
+                            <span className="material-icons-round" style={{ fontSize: '3rem', color: 'var(--color-text-muted)', opacity: 0.5 }}>
+                                person_off
+                            </span>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+                                No se encontraron usuarios
+                            </p>
                         </div>
                     ) : (
-                        pendingUsers.map(user => (
-                            <div key={user.id} className="bg-[var(--color-surface)] p-6 rounded-2xl shadow-soft border border-[var(--color-border)] flex flex-col gap-4 animate-fade-in-up transition-colors duration-300">
-                                <div className="flex gap-4">
-                                    <div className="size-14 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg shrink-0 overflow-hidden border-2 border-white/50">
-                                        {user.photoURL ? <img src={user.photoURL} alt={user.firstName} className="size-full object-cover" /> : user.firstName[0]}
-                                    </div>
-                                    <div className="flex-1 flex flex-col justify-center">
-                                        <h4 className="font-bold text-[var(--color-text-main)] text-lg leading-tight">{user.firstName} {user.lastName}</h4>
-                                        <p className="text-xs text-[var(--color-text-muted)] mt-1">{user.email}</p>
-                                    </div>
+                        filteredUsers.map(user => (
+                            <div
+                                key={user.id}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.75rem',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.75rem',
+                                    backgroundColor: 'var(--color-surface)',
+                                    border: '1px solid var(--color-border)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                onClick={() => handleEditUser(user)}
+                            >
+                                {/* Avatar */}
+                                <div style={{ position: 'relative' }}>
+                                    {user.photoURL ? (
+                                        <img
+                                            src={user.photoURL}
+                                            alt={user.firstName}
+                                            style={{
+                                                width: '2.5rem',
+                                                height: '2.5rem',
+                                                borderRadius: '50%',
+                                                objectFit: 'cover',
+                                                border: '2px solid var(--color-border)'
+                                            }}
+                                        />
+                                    ) : (
+                                        <div style={{
+                                            width: '2.5rem',
+                                            height: '2.5rem',
+                                            borderRadius: '50%',
+                                            backgroundColor: 'var(--color-bg)',
+                                            border: '2px solid var(--color-border)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '1rem',
+                                            fontWeight: 700,
+                                            color: 'var(--color-text-muted)'
+                                        }}>
+                                            {user.firstName[0]}{user.lastName[0]}
+                                        </div>
+                                    )}
+                                    {!user.approved && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: '-2px',
+                                            right: '-2px',
+                                            width: '0.75rem',
+                                            height: '0.75rem',
+                                            borderRadius: '50%',
+                                            backgroundColor: '#f59e0b',
+                                            border: '2px solid var(--color-surface)'
+                                        }} />
+                                    )}
                                 </div>
+
+                                {/* User Info */}
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <h3 style={{
+                                            fontSize: '0.875rem',
+                                            fontWeight: 700,
+                                            color: 'var(--color-text-main)',
+                                            margin: 0,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}>
+                                            {user.firstName} {user.lastName}
+                                        </h3>
+                                        {!user.approved && (
+                                            <span style={{
+                                                fontSize: '0.625rem',
+                                                fontWeight: 700,
+                                                color: '#f59e0b',
+                                                textTransform: 'uppercase',
+                                                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                                padding: '0.125rem 0.375rem',
+                                                borderRadius: '0.25rem'
+                                            }}>
+                                                Pendiente
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p style={{
+                                        fontSize: '0.75rem',
+                                        color: 'var(--color-text-muted)',
+                                        margin: '0.125rem 0 0 0',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap'
+                                    }}>
+                                        {user.email}
+                                    </p>
+                                </div>
+
+                                {/* Plan Badge */}
+                                <div style={{
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    color: 'var(--color-primary)',
+                                    backgroundColor: 'rgba(211, 0, 31, 0.1)',
+                                    padding: '0.25rem 0.5rem',
+                                    borderRadius: '0.375rem',
+                                    textTransform: 'capitalize'
+                                }}>
+                                    {user.plan}
+                                </div>
+
+                                {/* Edit Icon */}
                                 <button
-                                    onClick={() => openApprovalModal(user)}
-                                    className="w-full py-3 bg-brand-red text-white font-bold rounded-xl shadow-lg shadow-brand-red/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditUser(user);
+                                    }}
+                                    style={{
+                                        padding: '0.5rem',
+                                        borderRadius: '50%',
+                                        border: 'none',
+                                        backgroundColor: 'var(--color-bg)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
                                 >
-                                    <span className="material-symbols-outlined text-[20px]">check_circle</span>
-                                    Aprobar Acceso
+                                    <span className="material-icons-round" style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)' }}>
+                                        edit
+                                    </span>
                                 </button>
                             </div>
                         ))
                     )}
-                </main>
-
-                {/* Approval Modal */}
-                {selectedUser && (
-                    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                        <div className="bg-[var(--color-surface)] w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-slide-up sm:animate-zoom-in">
-                            <div className="p-4 border-b border-[var(--color-border)] flex justify-between items-center">
-                                <h3 className="text-lg font-bold text-[var(--color-text-main)]">Aprobar Usuario</h3>
-                                <button onClick={() => setSelectedUser(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]">
-                                    <span className="material-symbols-outlined">close</span>
-                                </button>
-                            </div>
-                            <div className="p-4 space-y-4">
-                                <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
-                                    <div className="size-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold shrink-0">
-                                        {selectedUser.firstName[0]}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-[var(--color-text-main)]">{selectedUser.firstName} {selectedUser.lastName}</p>
-                                        <p className="text-xs text-[var(--color-text-muted)]">{selectedUser.email}</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-[var(--color-text-muted)] uppercase mb-2">Plan de Suscripción</label>
-                                        <select
-                                            value={approvalFormData.plan}
-                                            onChange={(e) => setApprovalFormData({ ...approvalFormData, plan: e.target.value })}
-                                            className="w-full p-3 rounded-xl bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] focus:ring-2 focus:ring-brand-red outline-none appearance-none font-medium"
-                                        >
-                                            <option value="liebre">Plan Liebre (35€)</option>
-                                            <option value="gacela">Plan Gacela (55€)</option>
-                                            <option value="kanguro">Plan Kanguro (45€)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-[var(--color-text-muted)] uppercase mb-2">Grupo</label>
-                                        <select
-                                            value={approvalFormData.group}
-                                            onChange={(e) => setApprovalFormData({ ...approvalFormData, group: e.target.value })}
-                                            className="w-full p-3 rounded-xl bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] focus:ring-2 focus:ring-brand-red outline-none appearance-none font-medium"
-                                        >
-                                            <option value="almodovar_box">AlmodovarBOx</option>
-                                            <option value="almodovar_fit">AlmodovarFIT</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-[var(--color-text-muted)] uppercase mb-1.5">Rol de Usuario</label>
-                                        <select
-                                            value={approvalFormData.role}
-                                            onChange={(e) => setApprovalFormData({ ...approvalFormData, role: e.target.value })}
-                                            className="w-full p-3 rounded-xl bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] focus:ring-2 focus:ring-brand-red outline-none appearance-none"
-                                        >
-                                            <option value="cliente">Cliente (Atleta)</option>
-                                            <option value="coach">Coach (Entrenador)</option>
-                                            <option value="admin">Administrador</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="pt-2 flex gap-3">
-                                    <button
-                                        onClick={() => setSelectedUser(null)}
-                                        className="flex-1 py-3 font-bold text-[var(--color-text-muted)] bg-[var(--color-bg)] rounded-xl hover:bg-gray-200 transition-colors"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        onClick={confirmApprove}
-                                        className="flex-1 py-3 font-bold text-white bg-brand-red rounded-xl shadow-lg shadow-brand-red/20 active:scale-95 transition-transform"
-                                    >
-                                        Confirmar y Aprobar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        );
-    }
-
-    return (
-        <div className="h-[100dvh] bg-[var(--color-bg)] flex flex-col font-display antialiased overflow-y-auto overflow-x-hidden transition-colors duration-300">
-            {renderHeader("Gestión de Usuarios", onBack || (() => { }))}
-
-            <main className="flex-1 px-5 py-8 space-y-8 pb-40">
-                {/* Hero Card: Pending Requests */}
-                <button
-                    onClick={() => setViewMode('pending')}
-                    className="w-full relative overflow-hidden bg-gradient-to-br from-brand-dark to-gray-900 rounded-3xl shadow-xl p-6 text-left text-white group cursor-pointer active:scale-[0.98] transition-all border border-gray-800"
-                >
-                    <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <span className="material-symbols-outlined text-[120px]">person_add</span>
-                    </div>
-
-                    <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-2">
-                                <div className={`size-2 rounded-full ${pendingUsers.length > 0 ? 'bg-brand-red animate-pulse' : 'bg-green-500'}`}></div>
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                    {pendingUsers.length > 0 ? 'Requiere Atención' : 'Todo en orden'}
-                                </span>
-                            </div>
-                            {pendingUsers.length > 0 && (
-                                <div className="bg-brand-red text-white text-xs font-bold px-2 py-1 rounded-lg shadow-lg shadow-brand-red/20">
-                                    {pendingUsers.length} NUEVOS
-                                </div>
-                            )}
-                        </div>
-
-                        <h3 className="text-2xl font-black mb-1">Solicitudes<br />Pendientes</h3>
-                        <p className="text-sm text-gray-400 font-medium mb-6">Gestiona los nuevos miembros.</p>
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex -space-x-3">
-                                {pendingUsers.slice(0, 4).map((u, i) => (
-                                    <div key={u.id} className="size-10 rounded-full ring-2 ring-brand-dark bg-gray-100 flex items-center justify-center text-xs font-bold text-brand-dark overflow-hidden relative z-10" style={{ zIndex: 10 - i }}>
-                                        {u.photoURL ? <img src={u.photoURL} className="size-full object-cover" /> : u.firstName[0]}
-                                    </div>
-                                ))}
-                                {pendingUsers.length > 4 && (
-                                    <div className="size-10 rounded-full ring-2 ring-brand-dark bg-gray-800 flex items-center justify-center text-[10px] font-bold text-white relative z-0">
-                                        +{pendingUsers.length - 4}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="size-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm group-hover:bg-white/20 transition-colors">
-                                <span className="material-symbols-outlined text-white">arrow_forward</span>
-                            </div>
-                        </div>
-                    </div>
-                </button>
-
-                {/* Search & Statistics */}
-                <div style={{ top: 'calc(4.5rem + env(safe-area-inset-top) - 1px)' }} className="sticky z-30 bg-[var(--color-bg)] py-2 -mx-4 px-4 transition-all">
-                    <div className="flex gap-3">
-                        <div className="relative flex-1">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span className="material-symbols-outlined text-[var(--color-text-muted)]">search</span>
-                            </div>
-                            <input
-                                className="block w-full pl-10 pr-3 py-3 border-none rounded-xl bg-[var(--color-surface)] shadow-soft placeholder-[var(--color-text-muted)]/50 focus:ring-2 focus:ring-brand-red text-sm font-medium text-[var(--color-text-main)] transition-colors"
-                                placeholder="Buscar usuario por nombre..."
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                        <button className="bg-[var(--color-surface)] size-[46px] shrink-0 rounded-xl shadow-soft text-[var(--color-text-main)] hover:bg-[var(--color-bg)] transition-colors border border-transparent focus:ring-2 focus:ring-brand-red flex items-center justify-center">
-                            <span className="material-symbols-outlined">filter_list</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Active Users List */}
-                {loading ? (
-                    <div className="flex flex-col items-center justify-center py-20 gap-4">
-                        <div className="size-12 rounded-full border-4 border-white/10 border-t-brand-red animate-spin"></div>
-                        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase animate-pulse">Cargando Usuarios...</p>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {filteredActiveUsers.map(user => {
-                            const groupName = getGroupName(user.group);
-                            const planPrice = getPlanPrice(user.plan);
-
-                            // Premium Card Styles
-                            // Inline checks to avoid build corruption
-                            // const isPlanGacela = user.plan === 'gacela';
-                            // const isPlanLiebre = user.plan === 'liebre';
-
-                            return (
-                                <div key={user.id} className="bg-[#151518] rounded-2xl border border-white/5 p-4 flex items-center justify-between shadow-sm hover:border-white/10 transition-all group">
-                                    <div className="flex items-center gap-4">
-                                        {/* Minimalist Avatar */}
-                                        <div className="relative">
-                                            <div className="size-12 rounded-xl bg-[#232328] flex items-center justify-center text-white/50 font-bold overflow-hidden border border-white/5">
-                                                {user.photoURL ? (
-                                                    <img src={user.photoURL} alt={user.firstName} className="size-full object-cover" />
-                                                ) : (
-                                                    user.firstName[0]
-                                                )}
-                                            </div>
-                                            {/* Status Dot */}
-                                            <div className={`absolute -bottom-1 -right-1 size-3 rounded-full border-2 border-[#151518] ${user.group === 'afternoon' ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
-                                        </div>
-
-                                        {/* User Info */}
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2">
-                                                <h4 className="font-bold text-white text-base leading-none">
-                                                    {user.firstName} {user.lastName}
-                                                </h4>
-                                                {user.plan === 'gacela' && <span className="material-symbols-outlined text-purple-500 text-[14px]">verified</span>}
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs text-brand-red font-mono bg-brand-red/10 px-1.5 py-0.5 rounded-[4px] border border-brand-red/10">
-                                                    {groupName}
-                                                </span>
-                                                <span className="text-[10px] text-white/30 uppercase tracking-widest font-medium">
-                                                    {user.email}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Side */}
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-right hidden sm:block">
-                                            <span className="block text-white font-bold">{planPrice}</span>
-                                            <span className="text-[9px] text-white/30 uppercase">/mes</span>
-                                        </div>
-                                        <button
-                                            onClick={() => openApprovalModal(user)}
-                                            className="h-9 px-4 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-bold tracking-wide uppercase transition-colors border border-white/5 flex items-center gap-2"
-                                        >
-                                            <span className="hidden sm:inline">Editar</span>
-                                            <span className="material-symbols-outlined text-[16px]">edit</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-                {/* Edit Modal (Added to Main View) */}
-                {selectedUser && viewMode === 'overview' && (
-                    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-                        <div className="bg-[#1A1A1A] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-slide-up sm:animate-zoom-in border border-white/10">
-                            <div className="p-5 border-b border-white/5 flex justify-between items-center bg-[#232328]">
-                                <h3 className="text-lg font-bold text-white">
-                                    {selectedUser.approved ? 'Editar Miembro' : 'Aprobar Solicitud'}
-                                </h3>
-                                <button onClick={() => setSelectedUser(null)} className="text-white/30 hover:text-white transition-colors">
-                                    <span className="material-symbols-outlined">close</span>
-                                </button>
-                            </div>
-                            <div className="p-5 space-y-6">
-                                <div className="flex items-center gap-3 p-3 bg-black/20 rounded-xl border border-white/5">
-                                    <div className="size-10 rounded-lg bg-[#2D2D35] flex items-center justify-center text-white font-bold shrink-0">
-                                        {selectedUser.firstName[0]}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-white">{selectedUser.firstName} {selectedUser.lastName}</p>
-                                        <p className="text-xs text-white/40">{selectedUser.email}</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-5">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">Plan de Suscripción</label>
-                                        <div className="relative">
-                                            <select
-                                                value={approvalFormData.plan}
-                                                onChange={(e) => setApprovalFormData({ ...approvalFormData, plan: e.target.value })}
-                                                className="w-full p-4 rounded-xl bg-[#0A0A0A] border border-white/10 text-white appearance-none focus:border-brand-red outline-none transition-colors font-medium text-sm"
-                                            >
-                                                <option value="liebre">Plan Liebre (35€)</option>
-                                                <option value="kanguro">Plan Kanguro (45€)</option>
-                                                <option value="gacela">Plan Gacela (55€)</option>
-                                            </select>
-                                            <div className="absolute right-4 top-4 pointer-events-none text-white/30">
-                                                <span className="material-symbols-outlined text-sm">expand_more</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">Grupo</label>
-                                            <div className="relative">
-                                                <select
-                                                    value={approvalFormData.group}
-                                                    onChange={(e) => setApprovalFormData({ ...approvalFormData, group: e.target.value })}
-                                                    className="w-full p-4 rounded-xl bg-[#0A0A0A] border border-white/10 text-white appearance-none focus:border-brand-red outline-none transition-colors font-medium text-sm"
-                                                >
-                                                    <option value="almodovar_box">AlmodovarBOx</option>
-                                                    <option value="almodovar_fit">AlmodovarFIT</option>
-                                                </select>
-                                                <div className="absolute right-4 top-4 pointer-events-none text-white/30">
-                                                    <span className="material-symbols-outlined text-sm">expand_more</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">Rol</label>
-                                            <div className="relative">
-                                                <select
-                                                    value={approvalFormData.role}
-                                                    onChange={(e) => setApprovalFormData({ ...approvalFormData, role: e.target.value })}
-                                                    className="w-full p-4 rounded-xl bg-[#0A0A0A] border border-white/10 text-white appearance-none focus:border-brand-red outline-none transition-colors font-medium text-sm"
-                                                >
-                                                    <option value="cliente">Atleta</option>
-                                                    <option value="coach">Coach</option>
-                                                    <option value="admin">Admin</option>
-                                                </select>
-                                                <div className="absolute right-4 top-4 pointer-events-none text-white/30">
-                                                    <span className="material-symbols-outlined text-sm">expand_more</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="pt-2 flex gap-3">
-                                    <button
-                                        onClick={() => setSelectedUser(null)}
-                                        className="flex-1 py-3.5 font-bold text-white/50 bg-transparent rounded-xl hover:text-white transition-colors uppercase text-xs tracking-wider"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        onClick={confirmApprove}
-                                        className="flex-[2] py-3.5 font-bold text-white bg-brand-red rounded-xl shadow-lg shadow-brand-red/20 active:scale-95 transition-transform uppercase text-xs tracking-wider"
-                                    >
-                                        {selectedUser.approved ? 'Guardar Cambios' : 'Aprobar Acceso'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                </section>
             </main>
 
+            {/* Edit Modal */}
+            {showModal && selectedUser && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    backdropFilter: 'blur(4px)',
+                    padding: '1rem'
+                }}>
+                    <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        borderRadius: '0.75rem',
+                        maxWidth: '28rem',
+                        width: '100%',
+                        maxHeight: '90vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    }}>
+                        {/* Modal Header */}
+                        <div style={{
+                            padding: '1rem',
+                            borderBottom: '1px solid var(--color-border)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}>
+                            <h3 style={{
+                                fontSize: '1rem',
+                                fontWeight: 700,
+                                textTransform: 'uppercase',
+                                color: 'var(--color-text-main)',
+                                margin: 0
+                            }}>
+                                Editar Usuario
+                            </h3>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                style={{
+                                    padding: '0.25rem',
+                                    borderRadius: '50%',
+                                    border: 'none',
+                                    background: 'transparent',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                <span className="material-icons-round" style={{ fontSize: '1.25rem', color: 'var(--color-text-muted)' }}>
+                                    close
+                                </span>
+                            </button>
+                        </div>
 
+                        {/* Modal Content */}
+                        <div style={{
+                            flex: 1,
+                            overflowY: 'auto',
+                            padding: '1rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '1rem'
+                        }}>
+                            {/* User Avatar & Name */}
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                padding: '1rem',
+                                backgroundColor: 'var(--color-bg)',
+                                borderRadius: '0.75rem'
+                            }}>
+                                {selectedUser.photoURL ? (
+                                    <img
+                                        src={selectedUser.photoURL}
+                                        alt={selectedUser.firstName}
+                                        style={{
+                                            width: '4rem',
+                                            height: '4rem',
+                                            borderRadius: '50%',
+                                            objectFit: 'cover',
+                                            border: '3px solid var(--color-border)'
+                                        }}
+                                    />
+                                ) : (
+                                    <div style={{
+                                        width: '4rem',
+                                        height: '4rem',
+                                        borderRadius: '50%',
+                                        backgroundColor: 'var(--color-surface)',
+                                        border: '3px solid var(--color-border)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '1.5rem',
+                                        fontWeight: 700,
+                                        color: 'var(--color-text-muted)'
+                                    }}>
+                                        {selectedUser.firstName[0]}{selectedUser.lastName[0]}
+                                    </div>
+                                )}
+                                <div style={{ textAlign: 'center' }}>
+                                    <h4 style={{
+                                        fontSize: '1rem',
+                                        fontWeight: 700,
+                                        color: 'var(--color-text-main)',
+                                        margin: 0
+                                    }}>
+                                        {selectedUser.firstName} {selectedUser.lastName}
+                                    </h4>
+                                    <p style={{
+                                        fontSize: '0.75rem',
+                                        color: 'var(--color-text-muted)',
+                                        margin: '0.25rem 0 0 0'
+                                    }}>
+                                        {selectedUser.email}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Form Fields */}
+                            <div>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    color: 'var(--color-text-main)',
+                                    textTransform: 'uppercase'
+                                }}>
+                                    Nombre
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.firstName}
+                                    onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                                    style={{
+                                        display: 'block',
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        fontSize: '0.875rem',
+                                        borderRadius: '0.75rem',
+                                        backgroundColor: 'var(--color-surface)',
+                                        border: '1px solid var(--color-border)',
+                                        color: 'var(--color-text-main)',
+                                        outline: 'none'
+                                    }}
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    color: 'var(--color-text-main)',
+                                    textTransform: 'uppercase'
+                                }}>
+                                    Apellido
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.lastName}
+                                    onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                                    style={{
+                                        display: 'block',
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        fontSize: '0.875rem',
+                                        borderRadius: '0.75rem',
+                                        backgroundColor: 'var(--color-surface)',
+                                        border: '1px solid var(--color-border)',
+                                        color: 'var(--color-text-main)',
+                                        outline: 'none'
+                                    }}
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    color: 'var(--color-text-main)',
+                                    textTransform: 'uppercase'
+                                }}>
+                                    Plan
+                                </label>
+                                <select
+                                    value={editForm.plan}
+                                    onChange={(e) => setEditForm({ ...editForm, plan: e.target.value as any })}
+                                    style={{
+                                        display: 'block',
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        fontSize: '0.875rem',
+                                        borderRadius: '0.75rem',
+                                        backgroundColor: 'var(--color-surface)',
+                                        border: '1px solid var(--color-border)',
+                                        color: 'var(--color-text-main)',
+                                        outline: 'none'
+                                    }}
+                                >
+                                    <option value="liebre">Liebre (35€)</option>
+                                    <option value="kanguro">Kanguro (45€)</option>
+                                    <option value="gacela">Gacela (55€)</option>
+                                </select>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 700,
+                                        color: 'var(--color-text-main)',
+                                        textTransform: 'uppercase'
+                                    }}>
+                                        Grupo
+                                    </label>
+                                    <select
+                                        value={editForm.group}
+                                        onChange={(e) => setEditForm({ ...editForm, group: e.target.value as any })}
+                                        style={{
+                                            display: 'block',
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            fontSize: '0.875rem',
+                                            borderRadius: '0.75rem',
+                                            backgroundColor: 'var(--color-surface)',
+                                            border: '1px solid var(--color-border)',
+                                            color: 'var(--color-text-main)',
+                                            outline: 'none'
+                                        }}
+                                    >
+                                        <option value="almodovar_box">Box</option>
+                                        <option value="almodovar_fit">Fit</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 700,
+                                        color: 'var(--color-text-main)',
+                                        textTransform: 'uppercase'
+                                    }}>
+                                        Rol
+                                    </label>
+                                    <select
+                                        value={editForm.role}
+                                        onChange={(e) => setEditForm({ ...editForm, role: e.target.value as any })}
+                                        style={{
+                                            display: 'block',
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            fontSize: '0.875rem',
+                                            borderRadius: '0.75rem',
+                                            backgroundColor: 'var(--color-surface)',
+                                            border: '1px solid var(--color-border)',
+                                            color: 'var(--color-text-main)',
+                                            outline: 'none'
+                                        }}
+                                    >
+                                        <option value="cliente">Alumno</option>
+                                        <option value="coach">Coach</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    color: 'var(--color-text-main)',
+                                    textTransform: 'uppercase'
+                                }}>
+                                    Próxima Renovación
+                                </label>
+                                <input
+                                    type="date"
+                                    value={editForm.renewalDate}
+                                    onChange={(e) => setEditForm({ ...editForm, renewalDate: e.target.value })}
+                                    style={{
+                                        display: 'block',
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        fontSize: '0.875rem',
+                                        borderRadius: '0.75rem',
+                                        backgroundColor: 'var(--color-surface)',
+                                        border: '1px solid var(--color-border)',
+                                        color: 'var(--color-text-main)',
+                                        outline: 'none'
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div style={{
+                            padding: '1rem',
+                            borderTop: '1px solid var(--color-border)',
+                            display: 'flex',
+                            gap: '0.75rem'
+                        }}>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.75rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid var(--color-border)',
+                                    backgroundColor: 'transparent',
+                                    color: 'var(--color-text-main)',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    textTransform: 'uppercase'
+                                }}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSaveUser}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.75rem',
+                                    borderRadius: '0.5rem',
+                                    border: 'none',
+                                    backgroundColor: 'var(--color-primary)',
+                                    color: 'white',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    textTransform: 'uppercase',
+                                    boxShadow: '0 4px 6px -1px rgba(211, 0, 31, 0.2)'
+                                }}
+                            >
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

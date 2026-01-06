@@ -1,6 +1,5 @@
-﻿
+
 > almodovarbox@0.0.0 build
 > tsc -b && vite build
 
-src/views/AdminUsersView.tsx(112,11): error TS6133: 'getPlanColor' is declared but its value is never read.
-src/views/AdminUsersView.tsx(118,11): error TS6133: 'getGroupColor' is declared but its value is never read.
+src/views/AdminCreateClassView.tsx(21,27): error TS6133: 'setRepeatAllYear' is declared but its value is never read.
