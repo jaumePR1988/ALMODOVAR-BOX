@@ -130,76 +130,79 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
         }}>
             {/* Header */}
             <header style={{
-                flexShrink: 0, // Don't shrink header
+                flexShrink: 0,
                 zIndex: 50,
                 backgroundColor: 'rgba(var(--color-surface-rgb), 0.95)',
                 backdropFilter: 'blur(12px)',
                 borderBottom: '1px solid var(--color-border)',
-                padding: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
+                width: '100%'
             }}>
-                <button
-                    onClick={onBack}
-                    style={{
-                        padding: '0.5rem',
-                        marginLeft: '-0.5rem',
-                        borderRadius: '9999px',
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                >
-                    <span className="material-icons-round" style={{ fontSize: '24px', color: 'var(--color-text-main)' }}>
-                        arrow_back
-                    </span>
-                </button>
-                <h2 style={{
-                    fontSize: '1.125rem',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: 'var(--color-text-main)',
-                    textAlign: 'center',
-                    flex: 1
+                <div style={{
+                    maxWidth: '480px',
+                    margin: '0 auto',
+                    padding: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
                 }}>
-                    Nueva Clase
-                </h2>
-                <button
-                    onClick={handlePublish}
-                    disabled={isLoading}
-                    style={{
-                        fontSize: '0.875rem',
+                    <button
+                        onClick={onBack}
+                        style={{
+                            padding: '0.5rem',
+                            marginLeft: '-0.5rem',
+                            borderRadius: '9999px',
+                            border: 'none',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <span className="material-icons-round" style={{ fontSize: '24px', color: 'var(--color-text-main)' }}>
+                            arrow_back
+                        </span>
+                    </button>
+                    <h2 style={{
+                        fontSize: '1.125rem',
                         fontWeight: 700,
-                        color: 'var(--color-primary)',
                         textTransform: 'uppercase',
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: isLoading ? 'not-allowed' : 'pointer',
-                        opacity: isLoading ? 0.5 : 1
-                    }}
-                >
-                    {isLoading ? '...' : 'GUARDAR'}
-                </button>
+                        color: 'var(--color-text-main)',
+                        textAlign: 'center',
+                        flex: 1
+                    }}>
+                        Nueva Clase
+                    </h2>
+                    {/* Header 'Guardar' removed as we have bottom button */}
+                    <div style={{ width: '2rem' }}></div>
+                </div>
             </header>
 
             {/* Main Content - SCROLLABLE AREA */}
-            <main style={{
-                flex: 1, // Take remaining space
-                overflowY: 'auto', // Scroll inside this container
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center' // Center content horizontally
-            }}>
+            <main
+                className="hide-scrollbar" // Helper class for hiding scrollbar if available, style below handles inline
+                style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    scrollbarWidth: 'none', // Firefox
+                    msOverflowStyle: 'none' // IE/Edge
+                }}
+            >
+                {/* Style tag to hide webkit scrollbar specifically for this component */}
+                <style>{`
+                    main::-webkit-scrollbar {
+                        display: none;
+                    }
+                `}</style>
                 <div style={{
                     width: '100%',
-                    maxWidth: '480px', // Standard mobile width
-                    padding: '1rem', // Standard padding
-                    paddingBottom: '8rem', // Space for floating button
+                    maxWidth: '480px',
+                    padding: '1rem',
+                    paddingBottom: '2rem',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '1rem'
@@ -793,59 +796,50 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                         </label>
                     </div>
                 </div>
-            </main>
 
-            {/* Floating Button */}
-            <div style={{
-                position: 'fixed',
-                bottom: '1.5rem',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '100%',
-                maxWidth: '480px',
-                padding: '0 1rem',
-                zIndex: 40
-            }}>
-                <button
-                    onClick={handlePublish}
-                    disabled={isLoading}
-                    style={{
-                        width: '100%',
-                        padding: '1rem',
-                        borderRadius: '0.75rem',
-                        border: 'none',
-                        background: 'linear-gradient(to right, var(--color-primary), #C9002B)',
-                        color: 'white',
-                        fontSize: '0.875rem',
-                        fontWeight: 700,
-                        cursor: isLoading ? 'not-allowed' : 'pointer',
-                        textTransform: 'uppercase',
-                        boxShadow: '0 20px 40px -5px rgba(227, 0, 49, 0.4)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.75rem',
-                        opacity: isLoading ? 0.5 : 1,
-                        transition: 'all 0.2s'
-                    }}
-                >
-                    {isLoading ? (
-                        <>
-                            <span className="material-icons-round" style={{ fontSize: '1.25rem', animation: 'spin 1s linear infinite' }}>
-                                progress_activity
-                            </span>
-                            <span>Guardando...</span>
-                        </>
-                    ) : (
-                        <>
-                            <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>
-                                rocket_launch
-                            </span>
-                            <span>Publicar Clase</span>
-                        </>
-                    )}
-                </button>
-            </div>
+                {/* Main Action Button (Static at bottom) */}
+                <div style={{ marginTop: '1rem', width: '100%' }}>
+                    <button
+                        onClick={handlePublish}
+                        disabled={isLoading}
+                        style={{
+                            width: '100%',
+                            padding: '1rem',
+                            borderRadius: '0.75rem',
+                            border: 'none',
+                            background: 'linear-gradient(to right, var(--color-primary), #C9002B)',
+                            color: 'white',
+                            fontSize: '0.875rem',
+                            fontWeight: 700,
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            textTransform: 'uppercase',
+                            boxShadow: '0 20px 40px -5px rgba(227, 0, 49, 0.4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.75rem',
+                            opacity: isLoading ? 0.5 : 1,
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        {isLoading ? (
+                            <>
+                                <span className="material-icons-round" style={{ fontSize: '1.25rem', animation: 'spin 1s linear infinite' }}>
+                                    progress_activity
+                                </span>
+                                <span>Guardando...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>
+                                    rocket_launch
+                                </span>
+                                <span>Publicar Clase</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+            </main>
         </div>
     );
 };
