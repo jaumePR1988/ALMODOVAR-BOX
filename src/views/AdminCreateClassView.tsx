@@ -186,7 +186,7 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                 display: 'flex',
                 flexDirection: 'column',
                 width: '100%',
-                maxWidth: '32rem',
+                maxWidth: '480px',
                 margin: '0 auto',
                 padding: '1rem',
                 paddingBottom: '6rem',
@@ -197,7 +197,7 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                 <div style={{
                     position: 'relative',
                     width: '100%',
-                    height: '8rem',
+                    height: '12rem',
                     borderRadius: '0.75rem',
                     border: '2px dashed var(--color-border)',
                     backgroundColor: 'var(--color-surface)',
@@ -789,7 +789,7 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                 left: '50%',
                 transform: 'translateX(-50%)',
                 width: '100%',
-                maxWidth: '28rem',
+                maxWidth: '480px',
                 padding: '0 1rem',
                 zIndex: 40
             }}>
