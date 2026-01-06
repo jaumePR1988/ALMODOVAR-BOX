@@ -1,25 +1,72 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
+import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { ClassAttendeesModal } from '../components/ClassAttendeesModal';
 import { WODReportView } from './WODReportView';
 import type { DashboardContextType } from './ClientDashboardView';
+import { useEffect } from 'react';
 
 export const ClassDetailView: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { classId } = useParams<{ classId: string }>();
     const { handleBookClass, handleCancelClass } = useOutletContext<DashboardContextType>();
 
-    // Get classData from navigation state
-    const classData = location.state?.classData;
+    // State for class data (either from Nav or Fetch)
+    const [classData, setClassData] = useState<any>(location.state?.classData || null);
+    const [loading, setLoading] = useState(!location.state?.classData);
+    const [error, setError] = useState<string | null>(null);
 
-    // Handle missing data (e.g. direct URL access without state)
-    if (!classData) {
-        // ideally redirect or show error
-        // for now, just render a fallback or redirect back
-        React.useEffect(() => {
-            navigate('/dashboard/schedule', { replace: true });
-        }, [navigate]);
-        return null;
+    // Effect to fetch if no state but we have ID (Deep Link / Refresh)
+    useEffect(() => {
+        if (!classData && classId) {
+            const fetchClass = async () => {
+                try {
+                    setLoading(true);
+                    const docRef = doc(db, 'classes', classId);
+                    const docSnap = await getDoc(docRef);
+
+                    if (docSnap.exists()) {
+                        setClassData({ id: docSnap.id, ...docSnap.data() });
+                    } else {
+                        setError('Clase no encontrada');
+                    }
+                } catch (err) {
+                    console.error("Error fetching class:", err);
+                    setError('Error al cargar la clase');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchClass();
+        } else if (!classData && !classId) {
+            // No ID and No State -> Invalid Access
+            setError('Enlace inválido');
+            setLoading(false);
+        }
+    }, [classId, classData]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-[var(--color-bg)]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-primary)]"></div>
+            </div>
+        );
+    }
+
+    if (error || !classData) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[var(--color-bg)] text-[var(--color-text-main)]">
+                <p>{error || 'No se pudo cargar la información.'}</p>
+                <button
+                    onClick={() => navigate('/dashboard/schedule')}
+                    className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg"
+                >
+                    Volver al Horario
+                </button>
+            </div>
+        );
     }
 
     // Default values if data is missing

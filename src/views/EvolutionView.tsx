@@ -136,8 +136,8 @@ export const EvolutionView: React.FC = () => {
                             key={b.id}
                             onClick={() => setSelectedBenchmark(b)}
                             className={`whitespace-nowrap px-5 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 ${selectedBenchmark.id === b.id
-                                    ? 'bg-gradient-to-r from-[var(--color-primary)] to-red-600 text-white shadow-lg shadow-red-500/30 scale-105 ring-2 ring-red-400/50'
-                                    : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] border border-transparent hover:border-[var(--color-border)]'
+                                ? 'bg-gradient-to-r from-[var(--color-primary)] to-red-600 text-white shadow-lg shadow-red-500/30 scale-105 ring-2 ring-red-400/50'
+                                : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] border border-transparent hover:border-[var(--color-border)]'
                                 }`}
                         >
                             {b.label}
@@ -205,8 +205,8 @@ export const EvolutionView: React.FC = () => {
                                                     animate={{ height: `${heightPercent}%` }}
                                                     transition={{ duration: 1, type: "spring", bounce: 0.2, delay: index * 0.1 }}
                                                     className={`w-full max-w-[24px] rounded-t-lg relative overflow-hidden ${isPr
-                                                            ? 'bg-gradient-to-t from-[var(--color-primary)] to-red-400 shadow-[0_0_15px_rgba(211,0,31,0.5)]'
-                                                            : 'bg-[var(--color-surface-hover)]'
+                                                        ? 'bg-gradient-to-t from-[var(--color-primary)] to-red-400 shadow-[0_0_15px_rgba(211,0,31,0.5)]'
+                                                        : 'bg-[var(--color-surface-hover)]'
                                                         }`}
                                                 >
                                                     {/* Shine Effect */}
@@ -314,10 +314,16 @@ export const EvolutionView: React.FC = () => {
                                     <label className="block text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Marca ({selectedBenchmark.unit})</label>
                                     <div className="relative group">
                                         <input
-                                            type="text" // Text to handle comma inputs better manually
+                                            type="text"
                                             inputMode="decimal"
                                             value={newValue}
-                                            onChange={(e) => setNewValue(e.target.value)}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(',', '.');
+                                                // Allow digits and single dot
+                                                if (/^\d*\.?\d*$/.test(val)) {
+                                                    setNewValue(val);
+                                                }
+                                            }}
                                             placeholder="0"
                                             className="w-full bg-[var(--color-bg)] text-[var(--color-text-primary)] text-5xl font-black p-6 rounded-3xl border-2 border-transparent focus:border-[var(--color-primary)] focus:bg-[var(--color-bg)]/80 outline-none transition-all text-center tracking-tighter shadow-inner"
                                             autoFocus
@@ -340,8 +346,8 @@ export const EvolutionView: React.FC = () => {
                                     onClick={handleSave}
                                     disabled={!newValue || saving}
                                     className={`w-full py-5 rounded-2xl font-black text-lg text-white mt-4 shadow-xl transition-all relative overflow-hidden ${!newValue || saving
-                                            ? 'bg-gray-500/50 cursor-not-allowed'
-                                            : 'bg-gradient-to-r from-[var(--color-primary)] to-red-600 hover:shadow-red-500/40 active:scale-[0.98]'
+                                        ? 'bg-gray-500/50 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-[var(--color-primary)] to-red-600 hover:shadow-red-500/40 active:scale-[0.98]'
                                         }`}
                                 >
                                     {saving ? (

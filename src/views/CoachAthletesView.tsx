@@ -1,80 +1,99 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, QuerySnapshot } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
+
 
 interface CoachAthletesViewProps {
     onBack: () => void;
 }
 
+interface User {
+    uid: string;
+    displayName?: string;
+    name?: string;
+    email?: string;
+    photoURL?: string;
+    status?: string;
+    plan?: string;
+    lastAttendance?: string;
+    firstName?: string;
+}
+
 export const CoachAthletesView: React.FC<CoachAthletesViewProps> = ({ onBack }) => {
+    const { userData } = useAuth();
+    // const navigate = useNavigate(); // Removed unused
+
     const [searchTerm, setSearchTerm] = useState('');
-    const [users, setUsers] = useState<any[]>([]);
+    const [athletes, setAthletes] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchUsers = async () => {
-            setLoading(true);
-            try {
-                // Hardcoded coach group for now, matching CoachNotificationsView
-                const targetGroup = 'morning';
+        if (!userData) return;
 
-                const querySnapshot = await getDocs(collection(db, 'users'));
-                const fetched: any[] = [];
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    // Option B: Strict filtering. Only show users assigned to the coach's group.
-                    if (data.group === targetGroup && data.email !== 'admin@almodovarbox.com' && data.email !== 'coach@almodovarbox.com') {
-                        fetched.push({
-                            id: doc.id,
-                            name: data.displayName || data.name || data.email?.split('@')[0] || 'Usuario',
-                            image: data.photoURL || `https://ui-avatars.com/api/?name=${data.displayName || 'User'}&background=random`,
-                            status: data.status || 'active',
-                            plan: data.plan || 'box',
-                            lastAttendance: 'Sin datos'
-                        });
-                    }
-                });
-                setUsers(fetched);
-            } catch (error) {
-                console.error("Error fetching athletes:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+        // Determine target group from coach profile
+        const group = userData.assignedGroup || 'ALMODOVAR BOX'; // Default fallback
 
-        fetchUsers();
-    }, []);
+        // Server-side filtering: Only fetch users in this group (and client role)
+        // Note: Requires index on [assignedGroup, role] if we filter by both. 
+        // For now let's just filter by group to be safe on indexes, or just simple check.
+        // Assuming 'users' collection has 'assignedGroup' field.
 
-    const filteredUsers = users.filter(user =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+        const q = query(
+            collection(db, 'users'),
+            where('assignedGroup', '==', group),
+            where('role', '==', 'cliente')
+            // orderBy('firstName', 'asc') // Might need index: assignedGroup ASC, role ASC, firstName ASC
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot: QuerySnapshot) => {
+            const usersData = snapshot.docs.map(doc => ({
+                uid: doc.id,
+                ...doc.data()
+            })) as User[];
+
+            // Client-side sort to avoid index issues for now
+            usersData.sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
+
+            setAthletes(usersData);
+            setLoading(false);
+        }, (err: any) => {
+            console.error("Error fetching athletes:", err);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [userData]);
+
+    const filteredUsers = athletes.filter(athlete => // Changed from users to athletes
+        (athlete.displayName || athlete.name || athlete.email?.split('@')[0] || 'Usuario').toLowerCase().includes(searchTerm.toLowerCase())
+    ).map(athlete => ({ // Map to the structure expected by the rendering logic
+        id: athlete.uid,
+        name: athlete.displayName || athlete.name || athlete.email?.split('@')[0] || 'Usuario',
+        image: athlete.photoURL || `https://ui-avatars.com/api/?name=${athlete.displayName || 'User'}&background=random`,
+        status: athlete.status || 'active',
+        plan: athlete.plan || 'box',
+        lastAttendance: 'Sin datos' // This will need to be fetched separately or added to user data
+    }));
 
     return (
-        <div style={{ padding: '1.5rem 1.25rem', animation: 'fadeIn 0.3s ease-out', paddingBottom: '6rem' }}>
-            <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--color-text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+        <div className="p-5 pb-24 animate-fade-in-up">
+            <div className="mb-6 flex items-center gap-2">
+                <button onClick={onBack} className="text-text-main flex items-center justify-center p-2 -ml-2 rounded-full hover:bg-surface-hover transition-colors">
                     <span className="material-icons-round">arrow_back</span>
                 </button>
-                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>Alumnos/as del grupo</h2>
+                <h2 className="text-xl font-bold m-0">Alumnos/as del grupo</h2>
             </div>
 
             {/* Search Bar */}
-            <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
-                <span className="material-icons-round" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }}>search</span>
+            <div className="relative mb-6">
+                <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">search</span>
                 <input
                     type="text"
                     placeholder="Buscar alumno..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{
-                        width: '100%',
-                        padding: '1rem 1rem 1rem 3rem',
-                        borderRadius: '1rem',
-                        border: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-surface)',
-                        color: 'var(--color-text-main)',
-                        fontSize: '1rem'
-                    }}
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl border border-border bg-surface text-text-main text-base focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow"
                 />
             </div>
 
@@ -82,7 +101,7 @@ export const CoachAthletesView: React.FC<CoachAthletesViewProps> = ({ onBack }) 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
                 <div style={{ backgroundColor: 'var(--color-surface)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', textAlign: 'center' }}>
                     <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                        {loading ? '...' : users.length}
+                        {loading ? '...' : athletes.length}
                     </span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Total Alumnos</span>
                 </div>

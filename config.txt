@@ -1,0 +1,10 @@
+{
+  "projectId": "almodovar-box-2026",
+  "appId": "1:1025260999524:web:174319ea259396248d6071",
+  "storageBucket": "almodovar-box-2026.firebasestorage.app",
+  "apiKey": "AIzaSyCxEzgd1B80JMr7wcQ-A4sCLA8-xQkBpf0",
+  "authDomain": "almodovar-box-2026.firebaseapp.com",
+  "messagingSenderId": "1025260999524",
+  "projectNumber": "1025260999524",
+  "version": "2"
+}

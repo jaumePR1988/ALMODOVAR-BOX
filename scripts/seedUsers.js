@@ -7,7 +7,7 @@ import 'dotenv/config';
 const firebaseConfig = {
     apiKey: process.env.VITE_FIREBASE_API_KEY,
     authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: 'almodovarbox-b456a', // Explicitly setting based on user input to be sure
+    projectId: 'almodovar-box-2026', // Explicitly setting based on user input to be sure
     storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.VITE_FIREBASE_APP_ID

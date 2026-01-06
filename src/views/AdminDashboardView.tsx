@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { AdminUsersView } from './AdminUsersView';
+import { AdminUsersList } from './AdminUsersList';
+import { AdminCreateClassView } from './AdminCreateClassView';
+import { AdminGroupsView } from './AdminGroupsView';
 import { CoachScheduleView } from './CoachScheduleView';
+import { AdminCoachesView } from './AdminCoachesView';
 import { NotificationsView } from './NotificationsView';
 import { CommunityChatView } from './CommunityChatView';
 import { db } from '../firebase';
@@ -12,6 +15,7 @@ export const AdminDashboardView: React.FC = () => {
     const { userData, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const [activeTab, setActiveTab] = useState('inicio');
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     // Stats State
     const [stats, setStats] = useState({
@@ -19,10 +23,14 @@ export const AdminDashboardView: React.FC = () => {
         pendingUsers: 0,
         classesToday: 12 // Hardcoded as per layout
     });
+    const [statsError, setStatsError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
+                // Clear error state before fetching
+                setStatsError(null);
+
                 const usersRef = collection(db, 'users');
                 const snapshot = await getDocs(usersRef);
                 let total = 0;
@@ -36,14 +44,19 @@ export const AdminDashboardView: React.FC = () => {
                     activeUsers: total - pending,
                     pendingUsers: pending
                 }));
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error fetching stats:", error);
+                setStatsError("Error cargando datos. ¿Eres Admin?");
             }
         };
         fetchStats();
     }, []);
 
     const adminPhoto = userData?.photoURL || "https://lh3.googleusercontent.com/aida-public/AB6AXuAd01bjAYpy7bJvk9wdc3SdJ0FnGWkfipgGvydD9SmZhXrwCzOOgBCV-n170DCUF5TgZROm4iJ15xtm9CzxTlKWLeeJsAUJirjjrVIxzIm_9IOQk_IFwHnQ2ZMg0apNfXi1uJGiaSnFtcGhrjMhs4TuoxwZtJGuvtxpaOcMSNDw1j8maTJpI8yW6sB1DtY9EJXqVKe0A65Dp0UA2A3UOqW84EFbJWZph3Rt90CjV2ulG_IJHdr_n6t2ufxO7mBn2H6ICqOTO_Pdzxo";
+
+    // Direct Return for Full Screen Views (Bypasses Dashboard Layout)
+    if (activeTab === 'create-class') return <AdminCreateClassView onBack={() => setActiveTab('inicio')} />;
+    if (activeTab === 'grupos') return <AdminGroupsView onBack={() => setActiveTab('inicio')} />;
 
     const renderHeader = () => (
         <header style={{
@@ -92,7 +105,15 @@ export const AdminDashboardView: React.FC = () => {
     );
 
     const renderContent = () => {
-        if (activeTab === 'usuarios') return <AdminUsersView onBack={() => setActiveTab('inicio')} />;
+        if (activeTab === 'inicio') {
+            // ... (keep default dashboard rendering logic if it was inline, or simpler if extracted)
+            // It seems "inicio" falls through to the return below.
+        }
+
+        if (activeTab === 'create-class') return <AdminCreateClassView onBack={() => setActiveTab('inicio')} />;
+        if (activeTab === 'grupos') return <AdminGroupsView onBack={() => setActiveTab('inicio')} />;
+        if (activeTab === 'usuarios') return <AdminUsersList onBack={() => setActiveTab('inicio')} />;
+        if (activeTab === 'coaches') return <AdminCoachesView onBack={() => setActiveTab('inicio')} />;
         if (activeTab === 'agenda') return <CoachScheduleView onBack={() => setActiveTab('inicio')} onClassSelect={() => { }} />;
         if (activeTab === 'notificaciones') return <NotificationsView />;
         if (activeTab === 'chat') return <CommunityChatView />;
@@ -100,11 +121,14 @@ export const AdminDashboardView: React.FC = () => {
         return (
             <main className="animate-fade-in-up" style={{ padding: '1.5rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {/* Hero Stats Card */}
-                <section style={{
-                    backgroundColor: 'var(--color-primary)', borderRadius: '1rem', padding: '1rem 1.25rem',
-                    color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    boxShadow: '0 4px 12px rgba(227, 0, 49, 0.2)'
-                }}>
+                {statsError && (
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center gap-3 text-red-500">
+                        <span className="material-symbols-outlined">error</span>
+                        <p className="font-bold text-sm">{statsError}</p>
+                    </div>
+                )}
+                <section style={{ backgroundColor: 'var(--color-primary)', borderRadius: '1rem', padding: '1rem 1.25rem', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(227, 0, 49, 0.2)' }}>
+
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                             <h3 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, lineHeight: 1 }}>{stats.activeUsers}</h3>
@@ -164,7 +188,7 @@ export const AdminDashboardView: React.FC = () => {
                             </div>
                         </button>
 
-                        <button className="card-premium h-24 flex flex-col items-center justify-center gap-1 group active:scale-[0.98] transition-all border-color-border">
+                        <button onClick={() => setActiveTab('coaches')} className="card-premium h-24 flex flex-col items-center justify-center gap-1 group active:scale-[0.98] transition-all border-color-border">
                             <span className="material-symbols-outlined text-[24px] text-purple-500">sports_mma</span>
                             <span style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--color-text-main)' }}>Coaches</span>
                         </button>
@@ -199,14 +223,21 @@ export const AdminDashboardView: React.FC = () => {
         </a>
     );
 
-    const isDetailedView = ['agenda', 'chat', 'notificaciones', 'usuarios'].includes(activeTab);
+    const isDetailedView = ['agenda', 'chat', 'notificaciones', 'usuarios', 'create-class', 'grupos'].includes(activeTab);
 
     return (
         <div className="app-container">
             {!isDetailedView && renderHeader()}
-            <div className="scroll-container hide-scrollbar" style={{ overflowY: 'scroll', position: 'relative', scrollBehavior: 'smooth' }}>
-                {renderContent()}
-            </div>
+
+            {isDetailedView ? (
+                <div className="flex-1 overflow-y-auto hide-scrollbar relative">
+                    {renderContent()}
+                </div>
+            ) : (
+                <div className="scroll-container hide-scrollbar" style={{ overflowY: 'scroll', position: 'relative', scrollBehavior: 'smooth' }}>
+                    {renderContent()}
+                </div>
+            )}
 
             {/* Bottom Nav */}
             {!isDetailedView && (
@@ -227,11 +258,94 @@ export const AdminDashboardView: React.FC = () => {
                         <NavItem icon="grid_view" label="Panel" id="inicio" />
                         <NavItem icon="calendar_today" label="Agenda" id="agenda" />
 
-                        <div style={{ position: 'relative', top: '-1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-                            <button className="size-14 rounded-full bg-brand-dark text-white border-none shadow-[0_4px_10px_rgba(41,44,61,0.4)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.6)] flex items-center justify-center cursor-pointer z-10 active:scale-95 transition-transform">
-                                <span className="material-symbols-outlined text-[2rem]">add</span>
+                        <div style={{ position: 'relative', top: '-1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            {/* Overlay Background */}
+                            {isMenuOpen && (
+                                <div
+                                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-0 animate-fade-in"
+                                    onClick={() => setIsMenuOpen(false)}
+                                    style={{ zIndex: 0 }} // Below the buttons
+                                ></div>
+                            )}
+
+                            {/* Satellite Buttons Container - Only visible when menu is open */}
+                            {/* We use specific fixed positions relative to the center trigger for the semi-circle */}
+                            <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center justify-center w-0 h-0 transition-all duration-300 ${isMenuOpen ? 'visible z-10' : 'invisible -z-10'}`}>
+
+                                {/* 1. + Sesión (Far Left - 180deg/Left) */}
+                                <button
+                                    onClick={() => {
+                                        setIsMenuOpen(false);
+                                        setActiveTab('create-class');
+                                    }}
+                                    className={`absolute flex flex-col items-center gap-1 transition-all duration-500 ease-out delay-100 group ${isMenuOpen ? '-translate-x-[140px] -translate-y-[10px] scale-100 opacity-100' : 'translate-x-0 translate-y-0 scale-50 opacity-0'}`}
+                                >
+                                    <div className="size-12 rounded-full bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/30 flex items-center justify-center border border-white/10 group-hover:scale-110 group-hover:brightness-110 transition-all">
+                                        <span className="material-symbols-outlined text-[24px]">fitness_center</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-white bg-zinc-900/90 px-2.5 py-0.5 rounded-md shadow-sm absolute -bottom-7 whitespace-nowrap transition-all">Sesión</span>
+                                </button>
+
+                                {/* 2. + Grupo (Top Left - 135deg) */}
+                                <button
+                                    onClick={() => {
+                                        setIsMenuOpen(false);
+                                        setActiveTab('grupos');
+                                    }}
+                                    className={`absolute flex flex-col items-center gap-1 transition-all duration-500 ease-out delay-[50ms] group ${isMenuOpen ? '-translate-x-[110px] -translate-y-[90px] scale-100 opacity-100' : 'translate-x-0 translate-y-0 scale-50 opacity-0'}`}
+                                >
+                                    <div className="size-14 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30 flex items-center justify-center border border-white/10 group-hover:scale-110 group-hover:brightness-110 transition-all">
+                                        <span className="material-symbols-outlined text-[28px]">groups</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-white bg-zinc-900/90 px-2.5 py-0.5 rounded-md shadow-sm absolute -bottom-7 whitespace-nowrap transition-all">Grupo</span>
+                                </button>
+
+                                {/* 3. + Coach (Top Center - 90deg) */}
+                                <button
+                                    onClick={() => {
+                                        setIsMenuOpen(false);
+                                        setActiveTab('coaches');
+                                    }}
+                                    className={`absolute flex flex-col items-center gap-1 transition-all duration-500 ease-out delay-0 group ${isMenuOpen ? 'translate-x-0 -translate-y-[150px] scale-100 opacity-100' : 'translate-x-0 translate-y-0 scale-50 opacity-0'}`}
+                                >
+                                    <div className="size-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-xl shadow-purple-500/40 flex items-center justify-center border-2 border-white/10 group-hover:scale-110 group-hover:brightness-110 transition-all">
+                                        <span className="material-symbols-outlined text-[32px]">sports_mma</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-white bg-zinc-900/90 px-2.5 py-0.5 rounded-md shadow-sm absolute -bottom-8 whitespace-nowrap transition-all">Coach</span>
+                                </button>
+
+                                {/* 4. + Noticia (Top Right - 45deg) */}
+                                <button
+                                    className={`absolute flex flex-col items-center gap-1 transition-all duration-500 ease-out delay-[50ms] group ${isMenuOpen ? 'translate-x-[110px] -translate-y-[90px] scale-100 opacity-100' : 'translate-x-0 translate-y-0 scale-50 opacity-0'}`}
+                                >
+                                    <div className="size-14 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/30 flex items-center justify-center border border-white/10 group-hover:scale-110 group-hover:brightness-110 transition-all">
+                                        <span className="material-symbols-outlined text-[28px]">campaign</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-white bg-zinc-900/90 px-2.5 py-0.5 rounded-md shadow-sm absolute -bottom-7 whitespace-nowrap transition-all">Noticia</span>
+                                </button>
+
+                                {/* 5. + Reto (Far Right - 0deg) */}
+                                <button
+                                    className={`absolute flex flex-col items-center gap-1 transition-all duration-500 ease-out delay-100 group ${isMenuOpen ? 'translate-x-[140px] -translate-y-[10px] scale-100 opacity-100' : 'translate-x-0 translate-y-0 scale-50 opacity-0'}`}
+                                >
+                                    <div className="size-12 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-white shadow-lg shadow-teal-500/30 flex items-center justify-center border border-white/10 group-hover:scale-110 group-hover:brightness-110 transition-all">
+                                        <span className="material-symbols-outlined text-[24px]">emoji_events</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-white bg-zinc-900/90 px-2.5 py-0.5 rounded-md shadow-sm absolute -bottom-7 whitespace-nowrap transition-all">Reto</span>
+                                </button>
+
+                            </div>
+
+                            {/* Main Trigger Button */}
+                            <button
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className={`size-14 rounded-full bg-brand-red text-white border-none shadow-[0_4px_10px_rgba(227,0,49,0.4)] flex items-center justify-center cursor-pointer z-20 active:scale-95 transition-all duration-300 ${isMenuOpen ? 'bg-black rotate-[135deg] scale-90' : 'hover:scale-105 hover:shadow-brand-red/60'}`}
+                            >
+                                <span className="material-symbols-outlined text-[2rem]">{isMenuOpen ? 'add' : 'add'}</span>
                             </button>
-                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Añadir</span>
+                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.25rem', opacity: isMenuOpen ? 0 : 1, transition: 'opacity 0.2s' }}>
+                                Añadir
+                            </span>
                         </div>
 
                         <NavItem icon="chat" label="Chat" id="chat" />

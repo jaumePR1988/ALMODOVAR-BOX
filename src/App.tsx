@@ -109,7 +109,7 @@ function App() {
           <Route path="settings/notifications" element={<NotificationsSettingsView />} />
           <Route path="notifications" element={<NotificationsView />} />
           <Route path="chat" element={<CommunityChatView />} />
-          <Route path="class-detail" element={<ClassDetailView />} />
+          <Route path="class-detail/:classId" element={<ClassDetailView />} />
           <Route path="profile/evolution" element={<EvolutionView />} />
         </Route>
 

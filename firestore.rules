@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función auxiliar para verificar si el usuario es Admin
+    function isAdmin() {
+      return request.auth != null && (
+        // Email check (primary/god mode)
+        request.auth.token.email == 'admin@almodovarbox.com' || 
+        // Role check (requires document existence)
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'director'))
+      );
+    }
+
+    // Helper function to check if the user is a coach
+    function isCoach() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach';
+    }
+
+    // Colección de Usuarios
+    match /users/{userId} {
+      // Registrarse (crear su propio perfil)
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Leer: El propio usuario O Admins O Coaches (para ver sus atletas)
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin() || isCoach());
+      
+      // Actualizar: El propio usuario O Admins
+      allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      
+      // Borrar: Solo Admin
+      allow delete: if isAdmin();
+    }
+
+    // Otras colecciones
+    match /classes/{classId} { 
+      allow read: if request.auth != null; 
+      allow write: if isAdmin() || isCoach(); 
+    }
+    match /bookings/{bookingId} { 
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin() || isCoach());
+    }
+    match /benchmarks/{benchmarkId} { 
+      allow read: if request.auth != null; 
+      allow write: if isAdmin() || isCoach(); 
+    }
+    match /benchmark_logs/{logId} { 
+      allow read, write: if request.auth != null; 
+    }
+    match /notifications/{notificationId} { 
+      allow read, write: if request.auth != null; 
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
