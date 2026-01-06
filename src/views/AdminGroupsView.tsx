@@ -16,6 +16,11 @@ export const AdminGroupsView: React.FC<{ onBack: () => void }> = ({ onBack }) =>
     const [currentGroup, setCurrentGroup] = useState<Partial<Group>>({ name: '', type: 'box', weeklyLimit: 3 });
     const [filterQuery, setFilterQuery] = useState('');
 
+    // Assign Members State
+    const [isAssigningGroup, setIsAssigningGroup] = useState<Group | null>(null);
+    const [availableUsers, setAvailableUsers] = useState<any[]>([]);
+    const [assignQuery, setAssignQuery] = useState('');
+
     // Toast State
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | null; visible: boolean }>({
         message: '',
@@ -89,6 +94,37 @@ export const AdminGroupsView: React.FC<{ onBack: () => void }> = ({ onBack }) =>
             fetchGroups();
         } catch (error) {
             showToast("Error al eliminar", 'error');
+        }
+    };
+
+    // Assign Members Logic
+    const handleOpenAssign = async (group: Group) => {
+        setIsAssigningGroup(group);
+        try {
+            const q = query(collection(db, 'users'), orderBy('firstName'));
+            const snapshot = await getDocs(q);
+            // Filter only approved users and those not already in this group (optional, but good UX)
+            // For now, allow re-assigning to ensure it works.
+            const users = snapshot.docs.map(d => ({ id: d.id, ...d.data() })).filter((u: any) => u.approved);
+            setAvailableUsers(users);
+        } catch (error) {
+            console.error(error);
+            showToast("Error cargando usuarios", 'error');
+        }
+    };
+
+    const handleAssignUser = async (userId: string) => {
+        if (!isAssigningGroup) return;
+        try {
+            await updateDoc(doc(db, 'users', userId), {
+                group: isAssigningGroup.id // Using Group ID for robust linking
+            });
+            showToast("Usuario asignado correctamente", 'success');
+            // Optimistic update or refetch if needed
+            setAvailableUsers(prev => prev.map(u => u.id === userId ? { ...u, group: isAssigningGroup.id } : u));
+        } catch (error) {
+            console.error(error);
+            showToast("Error al asignar usuario", 'error');
         }
     };
 
@@ -291,7 +327,7 @@ export const AdminGroupsView: React.FC<{ onBack: () => void }> = ({ onBack }) =>
                                             <span style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500 }}>Miembros</span>
                                         </div>
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <button style={{
+                                            <button onClick={() => handleOpenAssign(g)} style={{
                                                 height: '2rem', padding: '0 0.75rem', borderRadius: '9999px', backgroundColor: '#2A2D3A',
                                                 color: '#D1D5DB', display: 'flex', alignItems: 'center', gap: '0.25rem', border: 'none',
                                                 fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', cursor: 'pointer'
@@ -411,6 +447,87 @@ export const AdminGroupsView: React.FC<{ onBack: () => void }> = ({ onBack }) =>
                             <button onClick={handleSave} style={{ flex: 1, padding: '1rem', borderRadius: '0.75rem', border: 'none', backgroundColor: '#E30031', color: 'white', fontWeight: 700, cursor: 'pointer' }}>
                                 Guardar
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Assign Modal */}
+            {isAssigningGroup && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(4px)'
+                }}>
+                    <div style={{
+                        width: '100%', maxWidth: '24rem', height: '80vh', backgroundColor: '#1E212B', borderRadius: '1.5rem',
+                        border: '1px solid #2A2D3A', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                    }}>
+                        <div style={{ padding: '1.5rem', borderBottom: '1px solid #2A2D3A', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'white', margin: 0 }}>
+                                    Asignar Miembros
+                                </h3>
+                                <p style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: '0.25rem' }}>{isAssigningGroup.name}</p>
+                            </div>
+                            <button onClick={() => setIsAssigningGroup(null)} style={{ background: 'transparent', border: 'none', color: '#9CA3AF', cursor: 'pointer' }}>
+                                <span className="material-icons-round">close</span>
+                            </button>
+                        </div>
+
+                        <div style={{ padding: '1rem' }}>
+                            <input
+                                placeholder="Buscar usuario..."
+                                value={assignQuery}
+                                onChange={e => setAssignQuery(e.target.value)}
+                                style={{
+                                    width: '100%', backgroundColor: '#12141C', border: '1px solid #2A2D3A',
+                                    borderRadius: '0.75rem', padding: '0.75rem', color: 'white', outline: 'none'
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '0 1rem 1rem' }} className="hide-scrollbar">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {availableUsers
+                                    .filter(u =>
+                                        (u.firstName?.toLowerCase() || '').includes(assignQuery.toLowerCase()) ||
+                                        (u.lastName?.toLowerCase() || '').includes(assignQuery.toLowerCase())
+                                    )
+                                    .map(user => (
+                                        <div key={user.id} style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            padding: '0.75rem', backgroundColor: '#12141C', borderRadius: '0.75rem',
+                                            border: '1px solid #2A2D3A', opacity: user.group === isAssigningGroup.id ? 0.5 : 1
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{
+                                                    width: '2.5rem', height: '2.5rem', borderRadius: '50%', backgroundColor: '#2A2D3A',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    color: '#9CA3AF', fontWeight: 700, border: '2px solid #1E212B'
+                                                }}>
+                                                    {user.firstName?.[0]}
+                                                </div>
+                                                <div>
+                                                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'white' }}>{user.firstName} {user.lastName}</p>
+                                                    <p style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{user.group === isAssigningGroup.id ? 'Ya en este grupo' : 'Sin asignar'}</p>
+                                                </div>
+                                            </div>
+                                            {user.group !== isAssigningGroup.id && (
+                                                <button
+                                                    onClick={() => handleAssignUser(user.id)}
+                                                    style={{
+                                                        width: '2rem', height: '2rem', borderRadius: '50%',
+                                                        backgroundColor: '#E30031', color: 'white', border: 'none',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    <span className="material-icons-round" style={{ fontSize: '16px' }}>add</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                            </div>
                         </div>
                     </div>
                 </div>

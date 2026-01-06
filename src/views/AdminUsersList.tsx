@@ -38,10 +38,24 @@ export const AdminUsersList: React.FC<AdminUsersListProps> = ({ onBack }) => {
         renewalDate: ''
     });
 
-    // Fetch users from Firebase
+    // Groups state
+    const [groupsList, setGroupsList] = useState<{ id: string, name: string }[]>([]);
+
+    // Fetch users and groups
     useEffect(() => {
         fetchUsers();
+        fetchGroups();
     }, []);
+
+    const fetchGroups = async () => {
+        try {
+            const groupsRef = collection(db, 'groups');
+            const snapshot = await getDocs(groupsRef);
+            setGroupsList(snapshot.docs.map(d => ({ id: d.id, name: d.data().name })));
+        } catch (error) {
+            console.error('Error fetching groups:', error);
+        }
+    };
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -710,16 +724,6 @@ export const AdminUsersList: React.FC<AdminUsersListProps> = ({ onBack }) => {
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
-                                    <label style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontSize: '0.75rem',
-                                        fontWeight: 700,
-                                        color: 'var(--color-text-main)',
-                                        textTransform: 'uppercase'
-                                    }}>
-                                        Grupo
-                                    </label>
                                     <select
                                         value={editForm.group}
                                         onChange={(e) => setEditForm({ ...editForm, group: e.target.value as any })}
@@ -735,8 +739,13 @@ export const AdminUsersList: React.FC<AdminUsersListProps> = ({ onBack }) => {
                                             outline: 'none'
                                         }}
                                     >
-                                        <option value="almodovar_box">Box</option>
-                                        <option value="almodovar_fit">Fit</option>
+                                        <option value="">Sin Grupo</option>
+                                        {groupsList.map(g => (
+                                            <option key={g.id} value={g.id}>{g.name}</option>
+                                        ))}
+                                        {/* Legacy Fallbacks if needed */}
+                                        {!groupsList.find(g => g.id === 'almodovar_box') && <option value="almodovar_box">Box (Legacy)</option>}
+                                        {!groupsList.find(g => g.id === 'almodovar_fit') && <option value="almodovar_fit">Fit (Legacy)</option>}
                                     </select>
                                 </div>
 
