@@ -28,10 +28,16 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
     useEffect(() => {
         const fetchCoaches = async () => {
             try {
-                const data = await coachService.getCoaches();
-                setCoaches(data.filter(c => c.active));
+                const data = await coachService.getCoaches().catch(err => {
+                    console.warn("Could not load coaches (permission error?):", err);
+                    return [] as Coach[];
+                });
+                if (data && data.length > 0) {
+                    setCoaches(data.filter(c => c.active));
+                }
             } catch (error) {
                 console.error("Error loading coaches:", error);
+                // Fallback: empty list, don't break UI
             }
         };
         fetchCoaches();
@@ -115,7 +121,8 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
 
     return (
         <div style={{
-            minHeight: '100dvh',
+            position: 'fixed', // Lock window scroll
+            inset: 0,
             backgroundColor: 'var(--color-background)',
             display: 'flex',
             flexDirection: 'column',
@@ -123,8 +130,7 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
         }}>
             {/* Header */}
             <header style={{
-                position: 'sticky',
-                top: 0,
+                flexShrink: 0, // Don't shrink header
                 zIndex: 50,
                 backgroundColor: 'rgba(var(--color-surface-rgb), 0.95)',
                 backdropFilter: 'blur(12px)',
@@ -180,24 +186,31 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                 </button>
             </header>
 
-            {/* Main Content  */}
-            {/* Main Content  */}
+            {/* Main Content - SCROLLABLE AREA */}
             <main style={{
+                flex: 1, // Take remaining space
+                overflowY: 'auto', // Scroll inside this container
                 width: '100%',
-                maxWidth: '42rem',
-                margin: '0 auto',
-                padding: '1.5rem',
-                paddingBottom: '8rem', // Extra space for floating button
-                display: 'block' // Ensure standard block flow
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center' // Center content horizontally
             }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{
+                    width: '100%',
+                    maxWidth: '480px', // Standard mobile width
+                    padding: '1rem', // Standard padding
+                    paddingBottom: '8rem', // Space for floating button
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem'
+                }}>
                     {/* Image Upload */}
                     <div style={{
                         position: 'relative',
                         width: '100%',
-                        height: '14rem', // Increased fixed height
-                        minHeight: '14rem', // Force min-height
-                        borderRadius: '1rem',
+                        height: '14rem',
+                        flexShrink: 0,
+                        borderRadius: '0.75rem', // Match design system
                         border: '2px dashed var(--color-border)',
                         backgroundColor: 'var(--color-surface)',
                         cursor: 'pointer',
@@ -206,9 +219,7 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '0.75rem',
-                        transition: 'all 0.2s',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        gap: '0.5rem'
                     }}>
                         <input
                             type="file"
@@ -791,7 +802,7 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                 left: '50%',
                 transform: 'translateX(-50%)',
                 width: '100%',
-                maxWidth: '42rem',
+                maxWidth: '480px',
                 padding: '0 1rem',
                 zIndex: 40
             }}>
