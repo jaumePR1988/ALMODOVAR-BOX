@@ -181,290 +181,538 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
             </header>
 
             {/* Main Content  */}
+            {/* Main Content  */}
             <main style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
                 width: '100%',
                 maxWidth: '42rem',
                 margin: '0 auto',
-                padding: '1rem',
-                paddingBottom: '6rem',
-                overflowY: 'auto',
-                gap: '1rem'
+                padding: '1.5rem',
+                paddingBottom: '8rem', // Extra space for floating button
+                display: 'block' // Ensure standard block flow
             }}>
-                {/* Image Upload */}
-                <div style={{
-                    position: 'relative',
-                    width: '100%',
-                    height: '12rem',
-                    flexShrink: 0,
-                    borderRadius: '0.75rem',
-                    border: '2px dashed var(--color-border)',
-                    backgroundColor: 'var(--color-surface)',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem'
-                }}>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageSelect}
-                        style={{
-                            position: 'absolute',
-                            inset: 0,
-                            width: '100%',
-                            height: '100%',
-                            opacity: 0,
-                            cursor: 'pointer',
-                            zIndex: 10
-                        }}
-                    />
-                    {!imagePreview && (
-                        <>
-                            <div style={{
-                                padding: '0.625rem',
-                                borderRadius: '9999px',
-                                backgroundColor: 'var(--color-bg)'
-                            }}>
-                                <span className="material-icons-round" style={{ fontSize: '1.5rem', color: 'var(--color-text-muted)' }}>
-                                    add_a_photo
-                                </span>
-                            </div>
-                            <p style={{
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                textTransform: 'uppercase',
-                                color: 'var(--color-text-main)',
-                                margin: 0
-                            }}>
-                                Portada
-                            </p>
-                        </>
-                    )}
-                    {imagePreview && (
-                        <img
-                            src={imagePreview}
-                            alt="Preview"
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    {/* Image Upload */}
+                    <div style={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '14rem', // Increased fixed height
+                        minHeight: '14rem', // Force min-height
+                        borderRadius: '1rem',
+                        border: '2px dashed var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        cursor: 'pointer',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.75rem',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageSelect}
                             style={{
                                 position: 'absolute',
                                 inset: 0,
                                 width: '100%',
                                 height: '100%',
-                                objectFit: 'cover'
+                                opacity: 0,
+                                cursor: 'pointer',
+                                zIndex: 10
                             }}
                         />
-                    )}
-                </div>
-
-                {/* Core Info Card */}
-                <div style={{
-                    backgroundColor: 'var(--color-surface)',
-                    borderRadius: '0.75rem',
-                    border: '1px solid var(--color-border)',
-                    padding: '1rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '1rem'
-                }}>
-                    {/* Name */}
-                    <div>
-                        <label style={labelStyle}>Nombre</label>
-                        <input
-                            type="text"
-                            placeholder="Ej. Crossfit Morning"
-                            value={className}
-                            onChange={(e) => setClassName(e.target.value)}
-                            style={inputStyle}
-                        />
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                        <label style={labelStyle}>Descripción</label>
-                        <textarea
-                            placeholder="Detalles del WOD, requisitos..."
-                            rows={3}
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            style={{
-                                ...inputStyle,
-                                resize: 'none'
-                            }}
-                        />
-                    </div>
-
-                    {/* Group Type */}
-                    <div>
-                        <label style={labelStyle}>Tipo de Clase</label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                            <label style={{
-                                cursor: 'pointer',
-                                position: 'relative'
-                            }}>
-                                <input
-                                    type="radio"
-                                    name="group"
-                                    checked={group === 'box'}
-                                    onChange={() => setGroup('box')}
-                                    style={{ display: 'none' }}
-                                />
+                        {!imagePreview && (
+                            <>
                                 <div style={{
-                                    padding: '1rem',
-                                    borderRadius: '0.75rem',
-                                    backgroundColor: 'var(--color-bg)',
-                                    border: group === 'box' ? '2px solid var(--color-primary)' : '2px solid transparent',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    transition: 'all 0.2s'
+                                    padding: '0.625rem',
+                                    borderRadius: '9999px',
+                                    backgroundColor: 'var(--color-bg)'
                                 }}>
-                                    <span className="material-icons-round" style={{
-                                        fontSize: '1.5rem',
-                                        color: group === 'box' ? 'var(--color-primary)' : 'var(--color-text-muted)'
-                                    }}>
-                                        fitness_center
-                                    </span>
-                                    <span style={{
-                                        fontSize: '0.75rem',
-                                        fontWeight: 700,
-                                        textTransform: 'uppercase',
-                                        color: group === 'box' ? 'var(--color-text-main)' : 'var(--color-text-muted)'
-                                    }}>
-                                        Box
+                                    <span className="material-icons-round" style={{ fontSize: '1.5rem', color: 'var(--color-text-muted)' }}>
+                                        add_a_photo
                                     </span>
                                 </div>
-                            </label>
-
-                            <label style={{
-                                cursor: 'pointer',
-                                position: 'relative'
-                            }}>
-                                <input
-                                    type="radio"
-                                    name="group"
-                                    checked={group === 'fit'}
-                                    onChange={() => setGroup('fit')}
-                                    style={{ display: 'none' }}
-                                />
-                                <div style={{
-                                    padding: '1rem',
-                                    borderRadius: '0.75rem',
-                                    backgroundColor: 'var(--color-bg)',
-                                    border: group === 'fit' ? '2px solid var(--color-primary)' : '2px solid transparent',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    transition: 'all 0.2s'
+                                <p style={{
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    textTransform: 'uppercase',
+                                    color: 'var(--color-text-main)',
+                                    margin: 0
                                 }}>
-                                    <span className="material-icons-round" style={{
-                                        fontSize: '1.5rem',
-                                        color: group === 'fit' ? 'var(--color-primary)' : 'var(--color-text-muted)'
+                                    Portada
+                                </p>
+                            </>
+                        )}
+                        {imagePreview && (
+                            <img
+                                src={imagePreview}
+                                alt="Preview"
+                                style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                }}
+                            />
+                        )}
+                    </div>
+
+                    {/* Core Info Card */}
+                    <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        borderRadius: '0.75rem',
+                        border: '1px solid var(--color-border)',
+                        padding: '1rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem'
+                    }}>
+                        {/* Name */}
+                        <div>
+                            <label style={labelStyle}>Nombre</label>
+                            <input
+                                type="text"
+                                placeholder="Ej. Crossfit Morning"
+                                value={className}
+                                onChange={(e) => setClassName(e.target.value)}
+                                style={inputStyle}
+                            />
+                        </div>
+
+                        {/* Description */}
+                        <div>
+                            <label style={labelStyle}>Descripción</label>
+                            <textarea
+                                placeholder="Detalles del WOD, requisitos..."
+                                rows={3}
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                style={{
+                                    ...inputStyle,
+                                    resize: 'none'
+                                }}
+                            />
+                        </div>
+
+                        {/* Group Type */}
+                        <div>
+                            <label style={labelStyle}>Tipo de Clase</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                <label style={{
+                                    cursor: 'pointer',
+                                    position: 'relative'
+                                }}>
+                                    <input
+                                        type="radio"
+                                        name="group"
+                                        checked={group === 'box'}
+                                        onChange={() => setGroup('box')}
+                                        style={{ display: 'none' }}
+                                    />
+                                    <div style={{
+                                        padding: '1rem',
+                                        borderRadius: '0.75rem',
+                                        backgroundColor: 'var(--color-bg)',
+                                        border: group === 'box' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        transition: 'all 0.2s'
                                     }}>
-                                        self_improvement
-                                    </span>
-                                    <span style={{
-                                        fontSize: '0.75rem',
-                                        fontWeight: 700,
-                                        textTransform: 'uppercase',
-                                        color: group === 'fit' ? 'var(--color-text-main)' : 'var(--color-text-muted)'
+                                        <span className="material-icons-round" style={{
+                                            fontSize: '1.5rem',
+                                            color: group === 'box' ? 'var(--color-primary)' : 'var(--color-text-muted)'
+                                        }}>
+                                            fitness_center
+                                        </span>
+                                        <span style={{
+                                            fontSize: '0.75rem',
+                                            fontWeight: 700,
+                                            textTransform: 'uppercase',
+                                            color: group === 'box' ? 'var(--color-text-main)' : 'var(--color-text-muted)'
+                                        }}>
+                                            Box
+                                        </span>
+                                    </div>
+                                </label>
+
+                                <label style={{
+                                    cursor: 'pointer',
+                                    position: 'relative'
+                                }}>
+                                    <input
+                                        type="radio"
+                                        name="group"
+                                        checked={group === 'fit'}
+                                        onChange={() => setGroup('fit')}
+                                        style={{ display: 'none' }}
+                                    />
+                                    <div style={{
+                                        padding: '1rem',
+                                        borderRadius: '0.75rem',
+                                        backgroundColor: 'var(--color-bg)',
+                                        border: group === 'fit' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        transition: 'all 0.2s'
                                     }}>
-                                        Fit
-                                    </span>
-                                </div>
-                            </label>
+                                        <span className="material-icons-round" style={{
+                                            fontSize: '1.5rem',
+                                            color: group === 'fit' ? 'var(--color-primary)' : 'var(--color-text-muted)'
+                                        }}>
+                                            self_improvement
+                                        </span>
+                                        <span style={{
+                                            fontSize: '0.75rem',
+                                            fontWeight: 700,
+                                            textTransform: 'uppercase',
+                                            color: group === 'fit' ? 'var(--color-text-main)' : 'var(--color-text-muted)'
+                                        }}>
+                                            Fit
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Schedule Card */}
-                <div style={{
-                    backgroundColor: 'var(--color-surface)',
-                    borderRadius: '0.75rem',
-                    border: '1px solid var(--color-border)',
-                    padding: '1rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '1rem'
-                }}>
+                    {/* Schedule Card */}
                     <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        borderRadius: '0.75rem',
+                        border: '1px solid var(--color-border)',
+                        padding: '1rem',
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        paddingBottom: '0.75rem',
-                        borderBottom: '1px solid var(--color-border)'
+                        flexDirection: 'column',
+                        gap: '1rem'
                     }}>
                         <div style={{
-                            padding: '0.5rem',
-                            borderRadius: '0.5rem',
-                            backgroundColor: 'rgba(211, 0, 31, 0.1)'
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            paddingBottom: '0.75rem',
+                            borderBottom: '1px solid var(--color-border)'
                         }}>
-                            <span className="material-icons-round" style={{ fontSize: '1.25rem', color: 'var(--color-primary)' }}>
-                                calendar_month
-                            </span>
+                            <div style={{
+                                padding: '0.5rem',
+                                borderRadius: '0.5rem',
+                                backgroundColor: 'rgba(211, 0, 31, 0.1)'
+                            }}>
+                                <span className="material-icons-round" style={{ fontSize: '1.25rem', color: 'var(--color-primary)' }}>
+                                    calendar_month
+                                </span>
+                            </div>
+                            <h3 style={{
+                                fontSize: '0.875rem',
+                                fontWeight: 700,
+                                textTransform: 'uppercase',
+                                color: 'var(--color-text-main)',
+                                margin: 0
+                            }}>
+                                Horario
+                            </h3>
                         </div>
-                        <h3 style={{
-                            fontSize: '0.875rem',
-                            fontWeight: 700,
-                            textTransform: 'uppercase',
-                            color: 'var(--color-text-main)',
-                            margin: 0
-                        }}>
-                            Horario
-                        </h3>
-                    </div>
 
-                    {/* Date */}
-                    <div>
-                        <label style={labelStyle}>Fecha</label>
-                        <input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            style={inputStyle}
-                        />
-                    </div>
-
-                    {/* Time Range */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        {/* Date */}
                         <div>
-                            <label style={labelStyle}>Inicio</label>
+                            <label style={labelStyle}>Fecha</label>
                             <input
-                                type="time"
-                                value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
-                                style={{ ...inputStyle, textAlign: 'center', fontWeight: 700 }}
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                style={inputStyle}
                             />
                         </div>
-                        <div>
-                            <label style={labelStyle}>Fin</label>
-                            <input
-                                type="time"
-                                value={endTime}
-                                onChange={(e) => setEndTime(e.target.value)}
-                                style={{ ...inputStyle, textAlign: 'center', fontWeight: 700 }}
-                            />
+
+                        {/* Time Range */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                            <div>
+                                <label style={labelStyle}>Inicio</label>
+                                <input
+                                    type="time"
+                                    value={startTime}
+                                    onChange={(e) => setStartTime(e.target.value)}
+                                    style={{ ...inputStyle, textAlign: 'center', fontWeight: 700 }}
+                                />
+                            </div>
+                            <div>
+                                <label style={labelStyle}>Fin</label>
+                                <input
+                                    type="time"
+                                    value={endTime}
+                                    onChange={(e) => setEndTime(e.target.value)}
+                                    style={{ ...inputStyle, textAlign: 'center', fontWeight: 700 }}
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Recurrence Card */}
-                <div style={{
-                    backgroundColor: 'var(--color-surface)',
-                    borderRadius: '0.75rem',
-                    border: '1px solid var(--color-border)',
-                    padding: '1rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '1rem'
-                }}>
+                    {/* Recurrence Card */}
                     <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        borderRadius: '0.75rem',
+                        border: '1px solid var(--color-border)',
+                        padding: '1rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{
+                                    padding: '0.5rem',
+                                    borderRadius: '0.5rem',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)'
+                                }}>
+                                    <span className="material-icons-round" style={{ fontSize: '1.25rem', color: '#3b82f6' }}>
+                                        update
+                                    </span>
+                                </div>
+                                <div>
+                                    <span style={{
+                                        fontSize: '0.875rem',
+                                        fontWeight: 700,
+                                        color: 'var(--color-text-main)',
+                                        display: 'block'
+                                    }}>
+                                        Repetir
+                                    </span>
+                                    <span style={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        color: 'var(--color-text-muted)'
+                                    }}>
+                                        Semanalmente
+                                    </span>
+                                </div>
+                            </div>
+                            <label style={{
+                                position: 'relative',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                cursor: 'pointer'
+                            }}>
+                                <input
+                                    type="checkbox"
+                                    checked={isRecurring}
+                                    onChange={(e) => setIsRecurring(e.target.checked)}
+                                    style={{ display: 'none' }}
+                                />
+                                <div style={{
+                                    width: '2.75rem',
+                                    height: '1.5rem',
+                                    backgroundColor: isRecurring ? 'var(--color-primary)' : 'var(--color-bg)',
+                                    borderRadius: '9999px',
+                                    position: 'relative',
+                                    transition: 'background-color 0.2s',
+                                    border: '1px solid var(--color-border)'
+                                }}>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '2px',
+                                        left: '2px',
+                                        backgroundColor: 'white',
+                                        borderRadius: '50%',
+                                        height: '1.25rem',
+                                        width: '1.25rem',
+                                        transition: 'transform 0.2s',
+                                        transform: isRecurring ? 'translateX(1.25rem)' : 'translateX(0)'
+                                    }} />
+                                </div>
+                            </label>
+                        </div>
+
+                        {isRecurring && (
+                            <div style={{
+                                paddingTop: '0.75rem',
+                                borderTop: '1px solid var(--color-border)'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    {weekDays.map(day => (
+                                        <button
+                                            key={day.id}
+                                            onClick={() => toggleDay(day.id)}
+                                            style={{
+                                                width: '2.25rem',
+                                                height: '2.25rem',
+                                                borderRadius: '50%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 700,
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                backgroundColor: recurringDays.includes(day.id) ? 'var(--color-primary)' : 'var(--color-bg)',
+                                                color: recurringDays.includes(day.id) ? 'white' : 'var(--color-text-muted)'
+                                            }}
+                                        >
+                                            {day.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Configuration Card */}
+                    <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        borderRadius: '0.75rem',
+                        border: '1px solid var(--color-border)',
+                        padding: '1rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            paddingBottom: '0.75rem',
+                            borderBottom: '1px solid var(--color-border)'
+                        }}>
+                            <div style={{
+                                padding: '0.5rem',
+                                borderRadius: '0.5rem',
+                                backgroundColor: 'rgba(0, 0, 0, 0.1)'
+                            }}>
+                                <span className="material-icons-round" style={{ fontSize: '1.25rem', color: 'var(--color-text-main)' }}>
+                                    settings_accessibility
+                                </span>
+                            </div>
+                            <h3 style={{
+                                fontSize: '0.875rem',
+                                fontWeight: 700,
+                                textTransform: 'uppercase',
+                                color: 'var(--color-text-main)',
+                                margin: 0
+                            }}>
+                                Configuración
+                            </h3>
+                        </div>
+
+                        {/* Coach */}
+                        <div>
+                            <label style={labelStyle}>Entrenador</label>
+                            <div style={{ position: 'relative' }}>
+                                <select
+                                    value={coachId}
+                                    onChange={(e) => setCoachId(e.target.value)}
+                                    style={{
+                                        ...inputStyle,
+                                        paddingRight: '2.5rem',
+                                        appearance: 'none',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <option disabled value="">Seleccionar Coach</option>
+                                    {coaches.map(coach => (
+                                        <option key={coach.id} value={coach.id}>
+                                            {coach.firstName} {coach.lastName} {coach.specialty ? `(${coach.specialty})` : ''}
+                                        </option>
+                                    ))}
+                                    {coaches.length === 0 && (
+                                        <option disabled>Cargando entrenadores...</option>
+                                    )}
+                                </select>
+                                <div style={{
+                                    position: 'absolute',
+                                    right: '0.75rem',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    pointerEvents: 'none'
+                                }}>
+                                    <span className="material-icons-round" style={{ fontSize: '1rem', color: 'var(--color-text-muted)' }}>
+                                        expand_more
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Capacity */}
+                        <div>
+                            <label style={labelStyle}>Aforo Máximo</label>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '0.5rem 1rem',
+                                borderRadius: '0.75rem',
+                                backgroundColor: 'var(--color-bg)'
+                            }}>
+                                <span style={{
+                                    fontSize: '1.125rem',
+                                    fontWeight: 700,
+                                    color: 'var(--color-text-main)'
+                                }}>
+                                    {capacity} <span style={{ fontSize: '0.75rem', opacity: 0.5, fontWeight: 500 }}>atletas</span>
+                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    <button
+                                        onClick={() => setCapacity(Math.max(1, capacity - 1))}
+                                        style={{
+                                            width: '2.5rem',
+                                            height: '2.5rem',
+                                            borderRadius: '0.5rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            border: 'none',
+                                            backgroundColor: 'var(--color-surface)',
+                                            color: 'var(--color-text-main)',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <span className="material-icons-round" style={{ fontSize: '0.875rem' }}>remove</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setCapacity(capacity + 1)}
+                                        style={{
+                                            width: '2.5rem',
+                                            height: '2.5rem',
+                                            borderRadius: '0.5rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            border: 'none',
+                                            backgroundColor: 'var(--color-surface)',
+                                            color: 'var(--color-text-main)',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <span className="material-icons-round" style={{ fontSize: '0.875rem' }}>add</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Notifications Card */}
+                    <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        borderRadius: '0.75rem',
+                        border: '1px solid var(--color-border)',
+                        padding: '1rem',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between'
@@ -473,10 +721,10 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                             <div style={{
                                 padding: '0.5rem',
                                 borderRadius: '0.5rem',
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)'
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)'
                             }}>
-                                <span className="material-icons-round" style={{ fontSize: '1.25rem', color: '#3b82f6' }}>
-                                    update
+                                <span className="material-icons-round" style={{ fontSize: '1.25rem', color: '#ef4444' }}>
+                                    notifications_active
                                 </span>
                             </div>
                             <div>
@@ -486,7 +734,7 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                                     color: 'var(--color-text-main)',
                                     display: 'block'
                                 }}>
-                                    Repetir
+                                    Notificar
                                 </span>
                                 <span style={{
                                     fontSize: '0.75rem',
@@ -494,7 +742,7 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                                     textTransform: 'uppercase',
                                     color: 'var(--color-text-muted)'
                                 }}>
-                                    Semanalmente
+                                    Push a usuarios
                                 </span>
                             </div>
                         </div>
@@ -506,14 +754,14 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                         }}>
                             <input
                                 type="checkbox"
-                                checked={isRecurring}
-                                onChange={(e) => setIsRecurring(e.target.checked)}
+                                checked={notifyUsers}
+                                onChange={(e) => setNotifyUsers(e.target.checked)}
                                 style={{ display: 'none' }}
                             />
                             <div style={{
                                 width: '2.75rem',
                                 height: '1.5rem',
-                                backgroundColor: isRecurring ? 'var(--color-primary)' : 'var(--color-bg)',
+                                backgroundColor: notifyUsers ? 'var(--color-primary)' : 'var(--color-bg)',
                                 borderRadius: '9999px',
                                 position: 'relative',
                                 transition: 'background-color 0.2s',
@@ -528,258 +776,11 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                                     height: '1.25rem',
                                     width: '1.25rem',
                                     transition: 'transform 0.2s',
-                                    transform: isRecurring ? 'translateX(1.25rem)' : 'translateX(0)'
+                                    transform: notifyUsers ? 'translateX(1.25rem)' : 'translateX(0)'
                                 }} />
                             </div>
                         </label>
                     </div>
-
-                    {isRecurring && (
-                        <div style={{
-                            paddingTop: '0.75rem',
-                            borderTop: '1px solid var(--color-border)'
-                        }}>
-                            <div style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
-                            }}>
-                                {weekDays.map(day => (
-                                    <button
-                                        key={day.id}
-                                        onClick={() => toggleDay(day.id)}
-                                        style={{
-                                            width: '2.25rem',
-                                            height: '2.25rem',
-                                            borderRadius: '50%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '0.75rem',
-                                            fontWeight: 700,
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s',
-                                            backgroundColor: recurringDays.includes(day.id) ? 'var(--color-primary)' : 'var(--color-bg)',
-                                            color: recurringDays.includes(day.id) ? 'white' : 'var(--color-text-muted)'
-                                        }}
-                                    >
-                                        {day.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Configuration Card */}
-                <div style={{
-                    backgroundColor: 'var(--color-surface)',
-                    borderRadius: '0.75rem',
-                    border: '1px solid var(--color-border)',
-                    padding: '1rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '1rem'
-                }}>
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        paddingBottom: '0.75rem',
-                        borderBottom: '1px solid var(--color-border)'
-                    }}>
-                        <div style={{
-                            padding: '0.5rem',
-                            borderRadius: '0.5rem',
-                            backgroundColor: 'rgba(0, 0, 0, 0.1)'
-                        }}>
-                            <span className="material-icons-round" style={{ fontSize: '1.25rem', color: 'var(--color-text-main)' }}>
-                                settings_accessibility
-                            </span>
-                        </div>
-                        <h3 style={{
-                            fontSize: '0.875rem',
-                            fontWeight: 700,
-                            textTransform: 'uppercase',
-                            color: 'var(--color-text-main)',
-                            margin: 0
-                        }}>
-                            Configuración
-                        </h3>
-                    </div>
-
-                    {/* Coach */}
-                    <div>
-                        <label style={labelStyle}>Entrenador</label>
-                        <div style={{ position: 'relative' }}>
-                            <select
-                                value={coachId}
-                                onChange={(e) => setCoachId(e.target.value)}
-                                style={{
-                                    ...inputStyle,
-                                    paddingRight: '2.5rem',
-                                    appearance: 'none',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <option disabled value="">Seleccionar Coach</option>
-                                {coaches.map(coach => (
-                                    <option key={coach.id} value={coach.id}>
-                                        {coach.firstName} {coach.lastName} {coach.specialty ? `(${coach.specialty})` : ''}
-                                    </option>
-                                ))}
-                                {coaches.length === 0 && (
-                                    <option disabled>Cargando entrenadores...</option>
-                                )}
-                            </select>
-                            <div style={{
-                                position: 'absolute',
-                                right: '0.75rem',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                pointerEvents: 'none'
-                            }}>
-                                <span className="material-icons-round" style={{ fontSize: '1rem', color: 'var(--color-text-muted)' }}>
-                                    expand_more
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Capacity */}
-                    <div>
-                        <label style={labelStyle}>Aforo Máximo</label>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '0.75rem',
-                            backgroundColor: 'var(--color-bg)'
-                        }}>
-                            <span style={{
-                                fontSize: '1.125rem',
-                                fontWeight: 700,
-                                color: 'var(--color-text-main)'
-                            }}>
-                                {capacity} <span style={{ fontSize: '0.75rem', opacity: 0.5, fontWeight: 500 }}>atletas</span>
-                            </span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                <button
-                                    onClick={() => setCapacity(Math.max(1, capacity - 1))}
-                                    style={{
-                                        width: '2.5rem',
-                                        height: '2.5rem',
-                                        borderRadius: '0.5rem',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        border: 'none',
-                                        backgroundColor: 'var(--color-surface)',
-                                        color: 'var(--color-text-main)',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <span className="material-icons-round" style={{ fontSize: '0.875rem' }}>remove</span>
-                                </button>
-                                <button
-                                    onClick={() => setCapacity(capacity + 1)}
-                                    style={{
-                                        width: '2.5rem',
-                                        height: '2.5rem',
-                                        borderRadius: '0.5rem',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        border: 'none',
-                                        backgroundColor: 'var(--color-surface)',
-                                        color: 'var(--color-text-main)',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <span className="material-icons-round" style={{ fontSize: '0.875rem' }}>add</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Notifications Card */}
-                <div style={{
-                    backgroundColor: 'var(--color-surface)',
-                    borderRadius: '0.75rem',
-                    border: '1px solid var(--color-border)',
-                    padding: '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <div style={{
-                            padding: '0.5rem',
-                            borderRadius: '0.5rem',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
-                        }}>
-                            <span className="material-icons-round" style={{ fontSize: '1.25rem', color: '#ef4444' }}>
-                                notifications_active
-                            </span>
-                        </div>
-                        <div>
-                            <span style={{
-                                fontSize: '0.875rem',
-                                fontWeight: 700,
-                                color: 'var(--color-text-main)',
-                                display: 'block'
-                            }}>
-                                Notificar
-                            </span>
-                            <span style={{
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                color: 'var(--color-text-muted)'
-                            }}>
-                                Push a usuarios
-                            </span>
-                        </div>
-                    </div>
-                    <label style={{
-                        position: 'relative',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        cursor: 'pointer'
-                    }}>
-                        <input
-                            type="checkbox"
-                            checked={notifyUsers}
-                            onChange={(e) => setNotifyUsers(e.target.checked)}
-                            style={{ display: 'none' }}
-                        />
-                        <div style={{
-                            width: '2.75rem',
-                            height: '1.5rem',
-                            backgroundColor: notifyUsers ? 'var(--color-primary)' : 'var(--color-bg)',
-                            borderRadius: '9999px',
-                            position: 'relative',
-                            transition: 'background-color 0.2s',
-                            border: '1px solid var(--color-border)'
-                        }}>
-                            <div style={{
-                                position: 'absolute',
-                                top: '2px',
-                                left: '2px',
-                                backgroundColor: 'white',
-                                borderRadius: '50%',
-                                height: '1.25rem',
-                                width: '1.25rem',
-                                transition: 'transform 0.2s',
-                                transform: notifyUsers ? 'translateX(1.25rem)' : 'translateX(0)'
-                            }} />
-                        </div>
-                    </label>
                 </div>
             </main>
 
