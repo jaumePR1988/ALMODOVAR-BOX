@@ -798,7 +798,7 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
                 </div>
 
                 {/* Main Action Button (Static at bottom) */}
-                <div style={{ marginTop: '1rem', width: '100%' }}>
+                <div style={{ marginTop: '1rem', marginBottom: '2rem', width: '100%' }}>
                     <button
                         onClick={handlePublish}
                         disabled={isLoading}
