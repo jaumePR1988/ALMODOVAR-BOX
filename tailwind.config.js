@@ -16,12 +16,19 @@ export default {
                 "background-light": "#F8F9FA",
                 "text-primary": "#292C3D",
                 "primary": "#E30031",
-                // Dark Theme Palette (Requested Update)
-                "dark-bg": "#12141C",
-                "dark-surface": "#1E212B",
-                "dark-surface-2": "#2A2D3A",
                 "dark-text-main": "#FFFFFF",
                 "dark-text-muted": "#9CA3AF",
+
+                // User Provided Specifics (Strict Match)
+                primary: "#D90429",
+                secondary: "#1F2937",
+                "background-light": "#F3F4F6",
+                "background-dark": "#111827",
+                "card-light": "#FFFFFF",
+                "card-dark": "#1F2937",
+                "text-light": "#1F2937",
+                "text-dark": "#F9FAFB",
+                "coach-red": "#D90429", // Keeping alias just in case
             },
             fontFamily: {
                 "display": ["Montserrat", "sans-serif"],
