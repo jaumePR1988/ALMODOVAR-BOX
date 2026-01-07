@@ -178,40 +178,7 @@ export const CoachDashboardView: React.FC = () => {
                             </div>
                         </section>
 
-                        {/* Global Management Section */}
-                        <section className="mt-2">
-                            <div className="flex justify-between items-center mb-3">
-                                <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider m-0">Gestión Global</h2>
-                            </div>
-                            <button
-                                onClick={() => navigate('/dashboard/admin/calendar')}
-                                className="w-full bg-surface rounded-2xl p-0 shadow-sm hover:shadow-md transition border border-border overflow-hidden group text-left relative cursor-pointer"
-                            >
-                                <div className="p-5 flex items-center justify-between relative z-10">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300 shrink-0">
-                                            <span className="material-icons-round text-2xl">calendar_month</span>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-base m-0 text-text-main">Gestionar Todas las Clases</h3>
-                                            <p className="text-xs text-text-muted mt-0.5 m-0">Visión global y edición de clases</p>
-                                        </div>
-                                    </div>
-                                    <div className="h-8 w-8 rounded-full flex items-center justify-center text-text-muted group-hover:text-primary transition-colors" style={{ backgroundColor: 'var(--color-bg)' }}>
-                                        <span className="material-icons-round">chevron_right</span>
-                                    </div>
-                                </div>
-                                <div className="px-5 py-3 border-t border-border flex justify-between items-center relative z-10" style={{ backgroundColor: 'rgba(var(--color-bg-rgb), 0.5)' }}>
-                                    <div className="flex -space-x-2">
-                                        <div className="h-6 w-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[8px] font-bold text-gray-500">L</div>
-                                        <div className="h-6 w-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[8px] font-bold text-gray-500">M</div>
-                                        <div className="h-6 w-6 rounded-full bg-primary border-2 border-white flex items-center justify-center text-[8px] font-bold text-white">X</div>
-                                        <div className="h-6 w-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[8px] font-bold text-gray-500">J</div>
-                                    </div>
-                                    <span className="text-xs font-semibold text-primary group-hover:underline">Acceder al calendario</span>
-                                </div>
-                            </button>
-                        </section>
+
                     </main >
                 );
             case 'agenda':
