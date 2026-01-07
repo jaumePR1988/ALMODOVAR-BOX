@@ -157,7 +157,7 @@ export const AdminUsersList: React.FC<AdminUsersListProps> = ({ onBack }) => {
     return (
         <div style={{
             minHeight: '100dvh',
-            backgroundColor: 'var(--color-background)',
+            backgroundColor: 'var(--color-bg)',
             display: 'flex',
             flexDirection: 'column',
             fontFamily: "'Inter', sans-serif"

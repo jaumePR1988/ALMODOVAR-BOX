@@ -205,7 +205,7 @@ export const CoachNotificationsView: React.FC<CoachNotificationsViewProps> = ({ 
     return (
         <div style={{
             minHeight: '100dvh',
-            backgroundColor: 'var(--color-background)',
+            backgroundColor: 'var(--color-bg)',
             display: 'flex',
             flexDirection: 'column',
             fontFamily: "'Inter', sans-serif"

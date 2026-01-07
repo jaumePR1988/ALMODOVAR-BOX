@@ -123,7 +123,7 @@ export const AdminCreateClassView: React.FC<AdminCreateClassViewProps> = ({ onBa
         <div style={{
             position: 'fixed', // Lock window scroll
             inset: 0,
-            backgroundColor: 'var(--color-background)', // Fondo general
+            backgroundColor: 'var(--color-bg)', // Fondo general
             display: 'flex',
             justifyContent: 'center', // Centrar la app horizontalmente
             fontFamily: "'Inter', sans-serif"

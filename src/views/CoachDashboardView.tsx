@@ -80,7 +80,7 @@ export const CoachDashboardView: React.FC = () => {
                 );
             case 'notificar_grupo':
                 return (
-                    <div className="animate-fade-in-up" style={{ paddingBottom: '6rem', backgroundColor: 'var(--color-background)' }}>
+                    <div className="animate-fade-in-up" style={{ paddingBottom: '6rem', backgroundColor: 'var(--color-bg)' }}>
                         <CoachNotificationsView onBack={() => setActiveTab('inicio')} />
                     </div>
                 );

@@ -192,7 +192,7 @@ export const AdminCoachesView: React.FC<AdminCoachesViewProps> = ({ onBack }) =>
         <div style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'var(--color-background)',
+            backgroundColor: 'var(--color-bg)',
             display: 'flex',
             justifyContent: 'center',
             fontFamily: "'Inter', sans-serif"
@@ -203,7 +203,7 @@ export const AdminCoachesView: React.FC<AdminCoachesViewProps> = ({ onBack }) =>
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: 'var(--color-background)',
+                backgroundColor: 'var(--color-bg)',
                 position: 'relative'
             }}>
                 {/* Header */}
