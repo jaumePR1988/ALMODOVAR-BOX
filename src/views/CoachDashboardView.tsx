@@ -196,10 +196,6 @@ export const CoachDashboardView: React.FC = () => {
                                 ))}
                             </div>
                         </section>
-
-                        {/* Main Stats Card - Compact Version */}
-                        <section className="bg-primary rounded-2xl p-5 text-white flex items-center justify-between shadow-lg shadow-primary/20">
-
                     </main >
                 );
             case 'agenda':
