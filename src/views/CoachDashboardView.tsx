@@ -86,8 +86,8 @@ export const CoachDashboardView: React.FC = () => {
                 );
             case 'inicio':
                 return (
-                    <main className="animate-fade-in-up" style={{ padding: '1.5rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
+                    <main className="animate-fade-in-up" style={{ padding: '1.5rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         {/* Actions Section */}
                         <section>
                             <h2 className="text-sm font-semibold text-text-muted mb-3 uppercase tracking-wider">Acciones Rápidas</h2>
@@ -111,12 +111,12 @@ export const CoachDashboardView: React.FC = () => {
                         </section>
 
                         {/* Main Stats Card */}
-                        <section className="bg-primary rounded-2xl p-5 text-white shadow-lg shadow-primary/30 relative overflow-hidden">
+                        <section className="bg-primary rounded-2xl p-5 text-white shadow-lg shadow-primary/30 relative overflow-hidden" style={{ minHeight: '180px' }}>
                             <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                             <div className="flex justify-between items-end relative z-10">
                                 <div>
                                     <p className="text-white/80 text-sm mb-1">Total Alumnos Hoy</p>
-                                    <h3 className="text-4xl font-bold">48</h3>
+                                    <h3 className="text-4xl font-bold m-0" style={{ color: 'white' }}>48</h3>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-white/80 text-xs font-medium bg-white/20 px-2 py-1 rounded-lg inline-flex items-center gap-1">
@@ -126,11 +126,11 @@ export const CoachDashboardView: React.FC = () => {
                             </div>
                             <div className="mt-4 flex gap-4 border-t border-white/20 pt-4 relative z-10">
                                 <div>
-                                    <span className="block text-xl font-bold">4</span>
+                                    <span className="block text-xl font-bold" style={{ color: 'white' }}>4</span>
                                     <span className="text-xs text-white/70">Clases</span>
                                 </div>
                                 <div>
-                                    <span className="block text-xl font-bold">98%</span>
+                                    <span className="block text-xl font-bold" style={{ color: 'white' }}>98%</span>
                                     <span className="text-xs text-white/70">Asistencia</span>
                                 </div>
                             </div>
@@ -145,7 +145,10 @@ export const CoachDashboardView: React.FC = () => {
 
                             <div className="flex flex-col gap-4">
                                 {(todayClasses.length > 0 ? todayClasses : [
-                                    // Fallback / Skeleton if empty to show structure or "No classes" message
+                                    // Fallback if empty
+                                    { id: 'mock1', title: 'Fit Boxing WOD', time: '10:00', location: 'Sala 1', enrolled: 12, capacity: 20, status: 'ongoing' },
+                                    { id: 'mock2', title: 'Open Box', time: '12:00', location: 'Zona Libre', enrolled: 8, capacity: 25, status: 'upcoming' },
+                                    { id: 'mock3', title: 'Fit Boxing Kids', time: '17:30', location: 'Sala 1', enrolled: 15, capacity: 16, status: 'upcoming' }
                                 ]).map((classItem) => (
                                     <div
                                         key={classItem.id}
@@ -179,7 +182,7 @@ export const CoachDashboardView: React.FC = () => {
                                 <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider m-0">Gestión Global</h2>
                             </div>
                             <button
-                                onClick={() => navigate('/dashboard/admin/calendar')} // Assuming route
+                                onClick={() => navigate('/dashboard/admin/calendar')}
                                 className="w-full bg-surface rounded-2xl p-0 shadow-sm hover:shadow-md transition border border-border overflow-hidden group text-left relative cursor-pointer"
                             >
                                 <div className="p-5 flex items-center justify-between relative z-10">
@@ -192,11 +195,11 @@ export const CoachDashboardView: React.FC = () => {
                                             <p className="text-xs text-text-muted mt-0.5 m-0">Visión global y edición de clases</p>
                                         </div>
                                     </div>
-                                    <div className="h-8 w-8 rounded-full bg-bg flex items-center justify-center text-text-muted group-hover:text-primary transition-colors">
+                                    <div className="h-8 w-8 rounded-full flex items-center justify-center text-text-muted group-hover:text-primary transition-colors" style={{ backgroundColor: 'var(--color-bg)' }}>
                                         <span className="material-icons-round">chevron_right</span>
                                     </div>
                                 </div>
-                                <div className="bg-bg/50 px-5 py-3 border-t border-border flex justify-between items-center relative z-10">
+                                <div className="px-5 py-3 border-t border-border flex justify-between items-center relative z-10" style={{ backgroundColor: 'rgba(var(--color-bg-rgb), 0.5)' }}>
                                     <div className="flex -space-x-2">
                                         <div className="h-6 w-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[8px] font-bold text-gray-500">L</div>
                                         <div className="h-6 w-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[8px] font-bold text-gray-500">M</div>
