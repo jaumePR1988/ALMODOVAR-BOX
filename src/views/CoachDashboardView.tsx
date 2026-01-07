@@ -111,42 +111,17 @@ export const CoachDashboardView: React.FC = () => {
 
 
 
-                        {/* Main Stats Card - Compact Version */}
-                        <section className="bg-primary rounded-2xl p-5 text-white flex items-center justify-between shadow-lg shadow-primary/20">
-                            <div className="flex flex-col items-center">
-                                <div className="flex items-center gap-1">
-                                    <h3 className="text-3xl font-extrabold leading-none">48</h3>
-                                    <span className="text-[10px] bg-white/20 px-1 py-0.5 rounded backdrop-blur-sm">+12%</span>
-                                </div>
-                                <p className="text-xs opacity-90 font-medium mt-1">Alumnos hoy</p>
-                            </div>
-
-                            <div className="w-px h-8 bg-white/20"></div>
-
-                            <div className="flex flex-col items-center">
-                                <h3 className="text-3xl font-extrabold leading-none">4</h3>
-                                <p className="text-xs opacity-90 font-medium mt-1">Clases</p>
-                            </div>
-
-                            <div className="w-px h-8 bg-white/20"></div>
-
-                            <div className="flex flex-col items-center">
-                                <h3 className="text-3xl font-extrabold leading-none">98%</h3>
-                                <p className="text-xs opacity-90 font-medium mt-1">Asistencia</p>
-                            </div>
-                        </section>
-
 
                         {/* Agenda */}
-                        <section className="mb-8">
+                        <section className="mb-4">
                             <div className="flex justify-between items-center mb-4">
                                 <div>
-                                    <h2 className="text-xl font-extrabold m-0">Agenda de Hoy</h2>
-                                    <p className="text-sm text-primary font-semibold mt-1">
+                                    <h2 className="heading-section m-0">Agenda de Hoy</h2>
+                                    <p className="text-sm font-semibold mt-1" style={{ color: 'var(--color-primary)' }}>
                                         {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                                     </p>
                                 </div>
-                                <button onClick={() => setActiveTab('agenda')} className="bg-none border-none text-text-muted text-sm font-semibold cursor-pointer hover:text-text-main transition-colors">Ver Todo</button>
+                                <button onClick={() => setActiveTab('agenda')} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Ver Todo</button>
                             </div>
 
                             <div className="flex flex-col gap-5">
@@ -187,7 +162,7 @@ export const CoachDashboardView: React.FC = () => {
                                             <div className="flex justify-between items-start mb-2">
                                                 {/* Left: Title & Location */}
                                                 <div>
-                                                    <h3 className="text-xl font-extrabold m-0 mb-1 leading-tight">{classItem.title}</h3>
+                                                    <h3 className="text-xl font-extrabold m-0 mb-1 leading-tight" style={{ color: 'var(--color-text-main)' }}>{classItem.title}</h3>
                                                     <p className="text-text-muted text-sm flex items-center gap-1 m-0">
                                                         <span className="material-icons-outlined text-base">location_on</span> {classItem.location}
                                                     </p>
@@ -221,6 +196,10 @@ export const CoachDashboardView: React.FC = () => {
                                 ))}
                             </div>
                         </section>
+
+                        {/* Main Stats Card - Compact Version */}
+                        <section className="bg-primary rounded-2xl p-5 text-white flex items-center justify-between shadow-lg shadow-primary/20">
+
                     </main >
                 );
             case 'agenda':
