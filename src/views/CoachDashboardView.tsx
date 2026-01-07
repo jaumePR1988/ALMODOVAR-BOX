@@ -87,20 +87,21 @@ export const CoachDashboardView: React.FC = () => {
             case 'inicio':
                 return (
                     <main className="animate-fade-in-up" style={{ padding: '1.5rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
                         {/* Actions Section */}
                         <section>
                             <h2 className="text-sm font-semibold text-text-muted mb-3 uppercase tracking-wider">Acciones Rápidas</h2>
                             <div className="grid grid-cols-2 gap-4">
                                 <button
                                     onClick={() => setActiveTab('notificar_grupo')}
-                                    className="bg-surface p-4 rounded-xl shadow-sm border border-transparent flex flex-col items-center justify-center gap-2 cursor-pointer transition-all text-text-main hover:bg-surface-hover active:scale-95">
+                                    className="bg-surface p-4 rounded-xl shadow-sm border border-transparent flex flex-col items-center justify-center gap-2 cursor-pointer transition-all text-text-main hover:bg-surface-hover active:scale-95 border-b-0 hover:border-primary/20">
                                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                                         <span className="material-icons-round">campaign</span>
                                     </div>
                                     <span className="font-medium text-sm">Notificar Grupo</span>
                                 </button>
 
-                                <button className="bg-surface p-4 rounded-xl shadow-sm border border-transparent flex flex-col items-center justify-center gap-2 cursor-pointer transition-all text-text-main hover:bg-surface-hover active:scale-95">
+                                <button className="bg-surface p-4 rounded-xl shadow-sm border border-transparent flex flex-col items-center justify-center gap-2 cursor-pointer transition-all text-text-main hover:bg-surface-hover active:scale-95 border-b-0 hover:border-primary/20">
                                     <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
                                         <span className="material-icons-round">emoji_events</span>
                                     </div>
@@ -109,92 +110,102 @@ export const CoachDashboardView: React.FC = () => {
                             </div>
                         </section>
 
-
-
-
-                        {/* Agenda */}
-                        <section className="mb-4">
-                            <div className="flex justify-between items-center mb-4">
+                        {/* Main Stats Card */}
+                        <section className="bg-primary rounded-2xl p-5 text-white shadow-lg shadow-primary/30 relative overflow-hidden">
+                            <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                            <div className="flex justify-between items-end relative z-10">
                                 <div>
-                                    <h2 className="heading-section m-0">Agenda de Hoy</h2>
-                                    <p className="text-sm font-semibold mt-1" style={{ color: 'var(--color-primary)' }}>
-                                        {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                    <p className="text-white/80 text-sm mb-1">Total Alumnos Hoy</p>
+                                    <h3 className="text-4xl font-bold">48</h3>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-white/80 text-xs font-medium bg-white/20 px-2 py-1 rounded-lg inline-flex items-center gap-1">
+                                        <span className="material-icons-round text-sm">trending_up</span> +12% vs ayer
                                     </p>
                                 </div>
-                                <button onClick={() => setActiveTab('agenda')} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Ver Todo</button>
+                            </div>
+                            <div className="mt-4 flex gap-4 border-t border-white/20 pt-4 relative z-10">
+                                <div>
+                                    <span className="block text-xl font-bold">4</span>
+                                    <span className="text-xs text-white/70">Clases</span>
+                                </div>
+                                <div>
+                                    <span className="block text-xl font-bold">98%</span>
+                                    <span className="text-xs text-white/70">Asistencia</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Agenda */}
+                        <section>
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-lg font-bold m-0" style={{ color: 'var(--color-text-main)' }}>Agenda de Hoy</h2>
+                                <button onClick={() => setActiveTab('agenda')} className="text-primary text-sm font-semibold border-none bg-transparent cursor-pointer">Ver Todo</button>
                             </div>
 
-                            <div className="flex flex-col gap-5">
+                            <div className="flex flex-col gap-4">
                                 {(todayClasses.length > 0 ? todayClasses : [
                                     // Fallback / Skeleton if empty to show structure or "No classes" message
-                                    // Keeping one mock for visual if empty? No, better to show empty state.
                                 ]).map((classItem) => (
                                     <div
                                         key={classItem.id}
                                         onClick={() => setSelectedClass({ ...classItem, date: 'Hoy' })}
-                                        className="bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-md cursor-pointer relative border border-border transition-shadow"
+                                        className="bg-surface rounded-2xl p-4 shadow-sm border border-border opacity-90 cursor-pointer"
                                     >
-
-                                        {/* Hero Image Section */}
-                                        <div className="h-32 relative overflow-hidden">
-                                            <img
-                                                src={classItem.image}
-                                                alt={classItem.title}
-                                                className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-
-                                            {/* Status Badge */}
-                                            <div className="absolute top-3 left-3">
-                                                {classItem.status === 'ongoing' ? (
-                                                    <span className="bg-green-500 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                                                        En Curso
-                                                    </span>
-                                                ) : (
-                                                    <span className="bg-black/60 text-white backdrop-blur-sm text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                                                        {classItem.time}
-                                                    </span>
-                                                )}
-                                            </div>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className={`px-2 py-1 text-xs font-bold rounded uppercase tracking-wide ${classItem.status === 'ongoing' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                {classItem.status === 'ongoing' ? 'En Curso' : 'Próxima'}
+                                            </span>
+                                            <span className="text-text-muted text-sm font-medium">{classItem.time} - {parseInt(classItem.time.split(':')[0]) + 1}:00</span>
                                         </div>
-
-                                        <div className="p-4 pt-3">
-                                            <div className="flex justify-between items-start mb-2">
-                                                {/* Left: Title & Location */}
-                                                <div>
-                                                    <h3 className="text-xl font-extrabold m-0 mb-1 leading-tight" style={{ color: 'var(--color-text-main)' }}>{classItem.title}</h3>
-                                                    <p className="text-text-muted text-sm flex items-center gap-1 m-0">
-                                                        <span className="material-icons-outlined text-base">location_on</span> {classItem.location}
-                                                    </p>
-                                                </div>
-
-                                                {/* Right: Time */}
-                                                <div className="flex items-center gap-1 bg-primary/10 px-2.5 py-1 rounded-lg text-primary">
-                                                    <span className="material-icons-round text-base">schedule</span>
-                                                    <span className="font-bold text-sm">{classItem.time}</span>
-                                                </div>
+                                        <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--color-text-main)' }}>{classItem.title}</h3>
+                                        <p className="text-text-muted text-sm mb-3 flex items-center gap-1">
+                                            <span className="material-icons-outlined text-base">location_on</span> {classItem.location}
+                                        </p>
+                                        <div className="flex items-center justify-between border-t border-border pt-3">
+                                            <div className="text-sm font-medium text-text-muted">
+                                                <span className="font-bold text-primary">{classItem.enrolled}</span>/{classItem.capacity} inscritos
                                             </div>
-
-                                            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                                                {/* Attendees Count */}
-                                                <div className="flex items-center gap-2">
-                                                    <div className="flex items-center">
-                                                        <span className="material-icons-outlined text-xl text-text-muted mr-1">group</span>
-                                                        <span className="font-bold text-text-main">{classItem.enrolled}</span>
-                                                        <span className="text-text-muted text-sm border-l border-border ml-1 pl-1">/{classItem.capacity}</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Manage Button - ALWAYS VISIBLE */}
-                                                <button className="bg-primary text-white border-none py-2 px-5 rounded-lg text-sm font-semibold cursor-pointer shadow-lg shadow-primary/30 flex items-center gap-1 transition-transform active:scale-95">
-                                                    <span>Gestionar</span>
-                                                    <span className="material-icons-round text-base">arrow_forward</span>
-                                                </button>
-                                            </div>
+                                            <button className="text-primary text-sm font-medium hover:underline border-none bg-transparent cursor-pointer">Ver Lista</button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                        </section>
+
+                        {/* Global Management Section */}
+                        <section className="mt-2">
+                            <div className="flex justify-between items-center mb-3">
+                                <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider m-0">Gestión Global</h2>
+                            </div>
+                            <button
+                                onClick={() => navigate('/dashboard/admin/calendar')} // Assuming route
+                                className="w-full bg-surface rounded-2xl p-0 shadow-sm hover:shadow-md transition border border-border overflow-hidden group text-left relative cursor-pointer"
+                            >
+                                <div className="p-5 flex items-center justify-between relative z-10">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300 shrink-0">
+                                            <span className="material-icons-round text-2xl">calendar_month</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-base m-0 text-text-main">Gestionar Todas las Clases</h3>
+                                            <p className="text-xs text-text-muted mt-0.5 m-0">Visión global y edición de clases</p>
+                                        </div>
+                                    </div>
+                                    <div className="h-8 w-8 rounded-full bg-bg flex items-center justify-center text-text-muted group-hover:text-primary transition-colors">
+                                        <span className="material-icons-round">chevron_right</span>
+                                    </div>
+                                </div>
+                                <div className="bg-bg/50 px-5 py-3 border-t border-border flex justify-between items-center relative z-10">
+                                    <div className="flex -space-x-2">
+                                        <div className="h-6 w-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[8px] font-bold text-gray-500">L</div>
+                                        <div className="h-6 w-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[8px] font-bold text-gray-500">M</div>
+                                        <div className="h-6 w-6 rounded-full bg-primary border-2 border-white flex items-center justify-center text-[8px] font-bold text-white">X</div>
+                                        <div className="h-6 w-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[8px] font-bold text-gray-500">J</div>
+                                    </div>
+                                    <span className="text-xs font-semibold text-primary group-hover:underline">Acceder al calendario</span>
+                                </div>
+                            </button>
                         </section>
                     </main >
                 );
