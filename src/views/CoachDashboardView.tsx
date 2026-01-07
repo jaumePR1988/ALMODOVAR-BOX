@@ -159,7 +159,9 @@ export const CoachDashboardView: React.FC = () => {
                                             <span className={`px-2 py-1 text-xs font-bold rounded uppercase tracking-wide ${classItem.status === 'ongoing' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                                 {classItem.status === 'ongoing' ? 'En Curso' : 'Próxima'}
                                             </span>
-                                            <span className="text-text-muted text-sm font-medium">{classItem.time} - {parseInt(classItem.time.split(':')[0]) + 1}:00</span>
+                                            <span className="text-text-muted text-sm font-medium">
+                                                {classItem.time ? `${classItem.time} - ${parseInt(classItem.time.split(':')[0]) + 1}:00` : 'Sin horario'}
+                                            </span>
                                         </div>
                                         <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--color-text-main)' }}>{classItem.title}</h3>
                                         <p className="text-text-muted text-sm mb-3 flex items-center gap-1">
